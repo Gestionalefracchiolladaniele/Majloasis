@@ -1,0 +1,37 @@
+// Centralised env access. Server-only secrets are read lazily so that the app
+// can be built/imported without the keys present (real runs require them).
+
+function required(name: string): string {
+  const v = process.env[name];
+  if (!v) throw new Error(`Missing environment variable: ${name}`);
+  return v;
+}
+
+export const env = {
+  // public (safe in the browser)
+  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
+  supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+
+  // server-only — call the getters, which throw if missing at use time
+  get supabaseServiceRole() {
+    return required('SUPABASE_SERVICE_ROLE_KEY');
+  },
+  get apifyToken() {
+    return required('APIFY_TOKEN');
+  },
+  get geminiApiKey() {
+    return required('GEMINI_API_KEY');
+  },
+  get cronSecret() {
+    return required('CRON_SECRET');
+  },
+  // Ricerca profili (query → lista profili). harvestapi: collaudato, no-cookie.
+  apifyProfileActor: process.env.APIFY_PROFILE_ACTOR || 'harvestapi~linkedin-profile-search',
+  // Scrape di UN profilo da URL (per "Il mio profilo"). Actor diverso dalla ricerca.
+  apifyProfileDetailActor:
+    process.env.APIFY_PROFILE_DETAIL_ACTOR || 'harvestapi~linkedin-profile-scraper',
+  apifyJobActor: process.env.APIFY_JOB_ACTOR || 'harvestapi~linkedin-job-search',
+  dashboardPassword: process.env.DASHBOARD_PASSWORD ?? '',
+};
+
+export const isSupabaseConfigured = () => Boolean(env.supabaseUrl && env.supabaseAnonKey);

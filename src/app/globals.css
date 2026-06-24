@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design tokens (luxury black & white — see DESIGN.md) ── */
+:root {
+  /* backgrounds — deep black */
+  --bg-deep: #000000;
+  --bg-base: #050505;
+  --bg-elevated: #ffffff; /* white cards */
+  --bg-glass: rgba(255, 255, 255, 0.04);
+
+  /* text on black */
+  --text-high: #ffffff;
+  --text-mid: rgba(255, 255, 255, 0.65);
+  --text-low: rgba(255, 255, 255, 0.4);
+
+  /* text on white cards (inverted) */
+  --on-card-high: #0a0a0a;
+  --on-card-mid: rgba(0, 0, 0, 0.6);
+  --on-card-low: rgba(0, 0, 0, 0.4);
+
+  /* accents */
+  --accent: #ffffff;
+  --gold: #c9a227;
+  --alert: #c0392b; /* sober red, used only when over the weekly limit */
+
+  /* borders */
+  --border: rgba(255, 255, 255, 0.1);
+  --border-card: rgba(0, 0, 0, 0.08);
+
+  /* radii */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* fonts (le variabili --font-inter/--font-sora vengono da next/font in layout.tsx) */
+  --font-ui: var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--font-sora), var(--font-inter), system-ui, sans-serif;
+
+  /* shadows / glow */
+  --glow-white: 0 0 24px rgba(255, 255, 255, 0.18);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.55);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  background: var(--bg-deep);
+  color: var(--text-high);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100dvh;
+}
+
+a {
+  color: inherit;
+}
+
+/* ── creative background: aurora blobs + floating particles (B/W) ── */
+@keyframes su-aurora1 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(8%, 6%) scale(1.15);
+  }
+}
+@keyframes su-aurora2 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1.1);
+  }
+  50% {
+    transform: translate(-7%, -5%) scale(0.95);
+  }
+}
+@keyframes su-aurora3 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(5%, -8%) scale(1.2);
+  }
+}
+@keyframes su-particle {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.7;
+  }
+  90% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-120vh) scale(1.4);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-aurora] * {
+    animation: none !important;
+  }
+}
+
+/* thin scrollbars inside the profile pop-up */
+.scroll-thin::-webkit-scrollbar {
+  width: 6px;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: var(--border-card);
+  border-radius: 999px;
+}

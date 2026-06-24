@@ -1,0 +1,29 @@
+name: Giro giornaliero (scrape + valutazione)
+
+# Gira ogni mattina alle 06:00 UTC. Chiama la route protetta /api/cron/collect
+# sull'app deployata su Vercel. Configura i due Secrets del repo:
+#   APP_URL      → es. https://linkedingoat.vercel.app
+#   CRON_SECRET  → la stessa stringa di .env.local / Vercel
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch: {} # permette l'avvio manuale dalla tab Actions
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Trigger collect endpoint
+        run: |
+          echo "Chiamo ${APP_URL}/api/cron/collect"
+          code=$(curl -sS -o /tmp/out.json -w "%{http_code}" \
+            -X POST "${APP_URL}/api/cron/collect" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            --max-time 300)
+          echo "HTTP $code"
+          cat /tmp/out.json
+          test "$code" = "200"
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
