@@ -1,5 +1,5 @@
 // Client-side fetch helpers for the dashboard. Thin wrappers over the API routes.
-import type { Contact, Job, Category, ContactStatus, RelStatus, UserProfile } from './types';
+import type { Contact, Job, Category, ContactStatus, RelStatus, UserProfile, CommentPost } from './types';
 
 async function json<T>(res: Response): Promise<T> {
   if (!res.ok) {
@@ -125,6 +125,51 @@ export const api = {
     ),
   stats: () => fetch('/api/stats').then((r) => json<InsightStats>(r)),
   network: () => fetch('/api/network').then((r) => json<{ clusters: NetworkCluster[] }>(r)),
+  // Tab "Commenta": post recenti su cui commentare a mano.
+  comments: {
+    list: (pendingOnly = false) =>
+      fetch(`/api/comments${pendingOnly ? '?pending=1' : ''}`).then((r) =>
+        json<{ posts: CommentPost[] }>(r),
+      ),
+    // "Trova 10 post": scrape on-demand. Abort a 70s → niente spinner infinito
+    // (Vercel hobby tronca a 60s), come per collect.
+    find: (postedLimit?: string) => {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 70_000);
+      return fetch('/api/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(postedLimit ? { postedLimit } : {}),
+        signal: ctrl.signal,
+      })
+        .then((r) =>
+          json<{ ok: boolean; found: number; fresh: number; saved: number; note?: string; error?: string }>(r),
+        )
+        .catch((e) => {
+          if (e?.name === 'AbortError') {
+            throw new Error('La ricerca post sta impiegando troppo (timeout). Riprova.');
+          }
+          throw e;
+        })
+        .finally(() => clearTimeout(t));
+    },
+    generate: (id: string, regenerate = false) =>
+      fetch(`/api/comments/${id}/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ regenerate }),
+      }).then((r) => json<{ comment: string; cached?: boolean }>(r)),
+    markCommented: (id: string, undo = false) =>
+      fetch(`/api/comments/${id}/commented`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ undo }),
+      }).then((r) => json<{ ok: boolean; commented_at: string | null }>(r)),
+    toMajloasis: (id: string) =>
+      fetch(`/api/comments/${id}/to-majloasis`, { method: 'POST' }).then((r) =>
+        json<{ ok: boolean; already: boolean; contactId: string | null; error?: string }>(r),
+      ),
+  },
   copilot: {
     history: () =>
       fetch('/api/copilot').then((r) => json<{ messages: CopilotMessage[] }>(r)),

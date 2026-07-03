@@ -34,6 +34,10 @@ export const env = {
   apifyProfileDetailActor:
     process.env.APIFY_PROFILE_DETAIL_ACTOR || 'harvestapi~linkedin-profile-scraper',
   apifyJobActor: process.env.APIFY_JOB_ACTOR || 'harvestapi~linkedin-job-search',
+  // Ricerca POST recenti per keyword (tab "Commenta"). harvestapi~linkedin-post-search:
+  // no-cookie, PAY_PER_EVENT. Testato dal vivo: input searchQueries[]+postedLimit+maxPosts,
+  // output con content, author.*, postedAt.date (timestamp reale → freschezza) ed engagement.
+  apifyPostActor: process.env.APIFY_POST_ACTOR || 'harvestapi~linkedin-post-search',
   dashboardPassword: process.env.DASHBOARD_PASSWORD ?? '',
 };
 

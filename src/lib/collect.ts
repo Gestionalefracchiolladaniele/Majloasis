@@ -1,6 +1,6 @@
 import { supabaseAdmin } from './supabase';
-import { searchProfiles, searchJobs } from './apify';
-import { evaluateContacts, evaluateJobs } from './gemini';
+import { searchProfiles, searchJobs, searchPosts } from './apify';
+import { evaluateContacts, evaluateJobs, evaluatePosts } from './gemini';
 import type { UserPreferences } from './types';
 import type { RawProfile } from './apify';
 
@@ -406,4 +406,145 @@ export async function runRevalue(limit = 45): Promise<RevalueResult> {
   }
 
   return { considered: pending.length, rescored, improved };
+}
+
+// ─────────────────────────────────────────────────────────────
+// Tab "Commenta": trova post RECENTI su cui commentare (top-of-funnel).
+// On-demand (bottone), NON cron. Flusso: Apify post-search (ultime ore) →
+// dedup (fuori chi è già in contacts + post/persone già viste) → Gemini valuta
+// come i lead → tiene i migliori → salva in comment_posts SENZA commento
+// (il commento si genera dopo, a comando). Restituisce quanti nuovi ne restano.
+// ─────────────────────────────────────────────────────────────
+export interface FindPostsResult {
+  found: number; // post tornati da Apify
+  fresh: number; // nuovi dopo il dedup
+  saved: number; // salvati (i migliori valutati)
+  note?: string;
+}
+
+// Non ripescare la stessa persona per N giorni (default 14): dopo un po' va bene
+// ricommentarla, ma non nella stessa settimana. Override via env.
+const POST_AUTHOR_COOLDOWN_DAYS = Number(process.env.COMMENT_AUTHOR_COOLDOWN_DAYS ?? 14);
+// Quanti post mostrare per click (i migliori dopo la valutazione).
+const FIND_POSTS_KEEP = Number(process.env.COMMENT_POSTS_KEEP ?? 10);
+
+export async function runFindPosts(
+  opts: { postedLimit?: string; scrapeLimit?: number; keep?: number } = {},
+): Promise<FindPostsResult> {
+  const db = supabaseAdmin();
+  const postedLimit = opts.postedLimit ?? '24h';
+  const scrapeLimit = opts.scrapeLimit ?? 40; // ne prendo più di 10: filtro poi
+  const keep = opts.keep ?? FIND_POSTS_KEEP;
+
+  const result: FindPostsResult = { found: 0, fresh: 0, saved: 0 };
+
+  // 1. Profilo utente (metro + query)
+  const { data: userRows } = await db
+    .from('user_profile')
+    .select('summary, preferences')
+    .order('updated_at', { ascending: false })
+    .limit(1);
+  const summary: string | null = userRows?.[0]?.summary ?? null;
+  const prefs: UserPreferences | null = userRows?.[0]?.preferences ?? null;
+
+  const keywords = prefs?.keywords?.length ? prefs.keywords : ['AI', 'founder', 'tech', 'startup'];
+  const city = prefs?.cities?.[0] ?? 'Dubai';
+  // Città DENTRO la query (l'Actor non ha filtro geografico) + un paio di angoli tuoi.
+  const queries = [
+    `${keywords.slice(0, 2).join(' ')} ${city}`,
+    `${city} ${keywords.slice(2, 4).join(' ') || 'startup founder'}`,
+  ].filter((q) => q.trim());
+
+  // 2. Scrape post recenti
+  const posts = await searchPosts(queries, postedLimit, scrapeLimit);
+  result.found = posts.length;
+  if (!posts.length) {
+    result.note = 'Nessun post trovato in questa finestra. Riprova o allarga il periodo.';
+    return result;
+  }
+
+  // 3. Dedup
+  const postUrls = posts.map((p) => p.post_url);
+  const authorUrls = posts.map((p) => p.author_url).filter((u): u is string => !!u);
+
+  // 3a. post già visti
+  const { data: seenPosts } = await db
+    .from('comment_posts')
+    .select('post_url')
+    .in('post_url', postUrls);
+  const seenPostSet = new Set((seenPosts ?? []).map((r) => r.post_url));
+
+  // 3b. persona già in Majloasis (contacts) → NON è "gente nuova"
+  const { data: inContacts } = authorUrls.length
+    ? await db.from('contacts').select('linkedin_url').in('linkedin_url', authorUrls)
+    : { data: [] as { linkedin_url: string }[] };
+  const contactSet = new Set((inContacts ?? []).map((r) => r.linkedin_url));
+
+  // 3c. persona già proposta di recente (cooldown) → gente sempre diversa
+  const cutoff = new Date(Date.now() - POST_AUTHOR_COOLDOWN_DAYS * 86400_000).toISOString();
+  const { data: recentAuthors } = authorUrls.length
+    ? await db
+        .from('comment_posts')
+        .select('author_url')
+        .in('author_url', authorUrls)
+        .gte('created_at', cutoff)
+    : { data: [] as { author_url: string | null }[] };
+  const recentAuthorSet = new Set(
+    (recentAuthors ?? []).map((r) => r.author_url).filter((u): u is string => !!u),
+  );
+
+  const seenAuthorsThisRun = new Set<string>();
+  const fresh = posts.filter((p) => {
+    if (seenPostSet.has(p.post_url)) return false;
+    if (p.author_url && contactSet.has(p.author_url)) return false;
+    if (p.author_url && recentAuthorSet.has(p.author_url)) return false;
+    // un solo post per autore in questo stesso giro
+    if (p.author_url) {
+      if (seenAuthorsThisRun.has(p.author_url)) return false;
+      seenAuthorsThisRun.add(p.author_url);
+    }
+    return true;
+  });
+  result.fresh = fresh.length;
+  if (!fresh.length) {
+    result.note = 'Tutti i post trovati erano già visti o di persone già nel pool. Riprova più tardi.';
+    return result;
+  }
+
+  // 4. Gemini valuta (come i lead) → tieni i migliori
+  const evals = await evaluatePosts(fresh, summary, prefs);
+  const ranked = fresh
+    .map((p) => ({ p, ev: evals.get(p.post_url) }))
+    .filter((x) => (x.ev?.score ?? 0) >= 25) // sotto 25 = spam/off-topic, scartati
+    .sort((a, b) => (b.ev?.score ?? 0) - (a.ev?.score ?? 0))
+    .slice(0, keep);
+
+  if (!ranked.length) {
+    result.note = 'Nessun post abbastanza pertinente da valere un commento. Riprova più tardi.';
+    return result;
+  }
+
+  const rows = ranked.map(({ p, ev }) => ({
+    post_url: p.post_url,
+    author_url: p.author_url,
+    author_name: p.author_name,
+    author_headline: p.author_headline,
+    author_photo: p.author_photo,
+    content: p.content,
+    posted_at: p.posted_at,
+    likes: p.likes ?? 0,
+    comments: p.comments ?? 0,
+    raw: p.raw,
+    score: ev?.score ?? null,
+    reason: ev?.reason ?? null,
+  }));
+
+  const { data, error } = await db
+    .from('comment_posts')
+    .upsert(rows, { onConflict: 'post_url', ignoreDuplicates: true })
+    .select('id');
+  if (error) result.note = `comment_posts insert: ${error.message}`;
+  result.saved = data?.length ?? 0;
+
+  return result;
 }

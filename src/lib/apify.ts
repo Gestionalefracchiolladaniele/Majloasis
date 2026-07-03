@@ -65,6 +65,20 @@ export interface RawJob {
   raw: Record<string, unknown>;
 }
 
+// Post LinkedIn recente (tab "Commenta"). L'author qui è la persona da farsi notare.
+export interface RawPost {
+  post_url: string; // url del post → bottone "Apri post"
+  author_url: string | null; // profilo autore → dedup persona + "Apri profilo"
+  author_name: string | null;
+  author_headline: string | null;
+  author_photo: string | null;
+  content: string | null; // testo del post
+  posted_at: string | null; // ISO — freschezza
+  likes: number | null;
+  comments: number | null;
+  raw: Record<string, unknown>;
+}
+
 // Rimuove i marcatori di direzione bidirezionale (RTL/LRM, es. da profili arabi)
 // e gli zero-width, che sporcano nome/first_name e sballano il guess del genere.
 function cleanText(s: string): string {
@@ -165,6 +179,71 @@ function normalizeJob(item: Record<string, unknown>): RawJob | null {
   };
 }
 
+/** Normalises a LinkedIn post item (tab "Commenta").
+ *  Struttura verificata dal vivo su harvestapi~linkedin-post-search:
+ *  { content, linkedinUrl, author:{name,publicIdentifier,linkedinUrl,info,avatar},
+ *    postedAt:{date}, engagement:{likes,comments} }. Copre anche nomi alternativi
+ *  di altri Actor di post, così cambiare Actor via env non richiede toccare il codice. */
+function normalizePost(item: Record<string, unknown>): RawPost | null {
+  const postUrl =
+    pick(item, ['linkedinUrl', 'postUrl', 'url', 'shareUrl', 'shareLinkedinUrl', 'postLink']);
+  if (!postUrl) return null;
+
+  // autore: oggetto annidato (harvestapi) o campi piatti
+  const authorObj =
+    item.author && typeof item.author === 'object'
+      ? (item.author as Record<string, unknown>)
+      : null;
+  const authorPublicId = authorObj
+    ? pick(authorObj, ['publicIdentifier', 'universalName'])
+    : pick(item, ['authorPublicIdentifier']);
+  const authorUrl =
+    (authorObj ? pick(authorObj, ['linkedinUrl', 'url', 'profileUrl']) : null) ??
+    pick(item, ['authorUrl', 'authorProfileUrl']) ??
+    (authorPublicId ? `https://www.linkedin.com/in/${authorPublicId}` : null);
+  const authorName =
+    (authorObj ? pick(authorObj, ['name', 'fullName']) : null) ??
+    pick(item, ['authorName', 'authorFullName']);
+  const authorHeadline =
+    (authorObj ? pick(authorObj, ['info', 'headline', 'occupation', 'subtitle']) : null) ??
+    pick(item, ['authorHeadline', 'authorTitle']);
+  const authorPhoto =
+    (authorObj ? pick(authorObj, ['avatar', 'profilePicture', 'photoUrl']) : null) ??
+    pick(item, ['authorAvatar', 'authorPhoto']);
+
+  // data: postedAt.date (ISO) oppure timestamp piatto
+  let postedAt: string | null = null;
+  if (item.postedAt && typeof item.postedAt === 'object') {
+    postedAt = pick(item.postedAt as Record<string, unknown>, ['date']);
+    if (!postedAt) {
+      const ts = pickNum(item.postedAt as Record<string, unknown>, ['timestamp']);
+      if (ts) postedAt = new Date(ts).toISOString();
+    }
+  }
+  postedAt = postedAt ?? pick(item, ['postedAt', 'publishedAt', 'date', 'time']);
+
+  // engagement: oggetto annidato o campi piatti
+  const eng =
+    item.engagement && typeof item.engagement === 'object'
+      ? (item.engagement as Record<string, unknown>)
+      : item;
+  const likes = pickNum(eng, ['likes', 'numLikes', 'reactionsCount', 'reactions', 'likeCount']);
+  const comments = pickNum(eng, ['comments', 'numComments', 'commentsCount', 'commentCount']);
+
+  return {
+    post_url: postUrl.split('?')[0],
+    author_url: authorUrl ? authorUrl.split('?')[0].replace(/\/$/, '') : null,
+    author_name: authorName,
+    author_headline: authorHeadline,
+    author_photo: authorPhoto,
+    content: pick(item, ['content', 'text', 'postText', 'commentary']),
+    posted_at: postedAt,
+    likes,
+    comments,
+    raw: item,
+  };
+}
+
 /**
  * Cerca profili LinkedIn per parole chiave + città.
  * @param keywords  termini di ricerca (es. ["founder","CEO","tech"])
@@ -243,6 +322,46 @@ export async function searchJobs(
     if (j && !seen.has(j.linkedin_url)) {
       seen.add(j.linkedin_url);
       out.push(j);
+    }
+  }
+  return out.slice(0, limit);
+}
+
+/**
+ * Cerca POST LinkedIn recenti per parole chiave (tab "Commenta").
+ * L'Actor non ha un filtro geografico → la città va messa DENTRO la query.
+ * @param queries      stringhe di ricerca (es. ["AI Dubai founder"]) — Dubai va nella query
+ * @param postedLimit  finestra temporale: '1h' | '24h' | 'week' | 'month' | ... (freschezza)
+ * @param limit        numero massimo di post per query
+ */
+export async function searchPosts(
+  queries: string[],
+  postedLimit: string = '24h',
+  limit = 40,
+): Promise<RawPost[]> {
+  const input: Record<string, unknown> = {
+    // harvestapi~linkedin-post-search (default): schema verificato dal vivo.
+    searchQueries: queries,
+    postedLimit,
+    maxPosts: limit,
+    // comune / altri Actor di post (leggono solo i campi che conoscono)
+    keywords: queries,
+    searchQuery: queries[0] ?? '',
+    maxItems: limit,
+    maxResults: limit,
+  };
+
+  const items = await runActor(env.apifyPostActor, input);
+  console.log(
+    `[apify] searchPosts queries=${JSON.stringify(queries)} postedLimit=${postedLimit} → ${items.length} item`,
+  );
+  const out: RawPost[] = [];
+  const seen = new Set<string>();
+  for (const it of items) {
+    const p = normalizePost(it);
+    if (p && !seen.has(p.post_url)) {
+      seen.add(p.post_url);
+      out.push(p);
     }
   }
   return out.slice(0, limit);
