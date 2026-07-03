@@ -15,6 +15,15 @@ function initials(name: string | null): string {
     .toUpperCase();
 }
 
+// Colore stabile derivato dal nome (l'Actor khadinakbar non dà la foto → avatar
+// con iniziali). Tinta desaturata/scura, coerente col look luxury B&W + tocco oro.
+function avatarColor(name: string | null): string {
+  if (!name) return 'hsl(0 0% 20%)';
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 360;
+  return `hsl(${h} 32% 24%)`;
+}
+
 const statusStyle: Record<string, React.CSSProperties> = {
   da_valutare: {},
   da_fare: { boxShadow: '0 0 0 1.5px var(--gold), var(--shadow-card)' },
@@ -134,12 +143,14 @@ export function ContactCard({
             height: 44,
             borderRadius: '50%',
             flexShrink: 0,
-            background: 'rgba(0,0,0,0.06)',
+            background: avatarColor(contact.name),
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontWeight: 600,
-            color: 'var(--on-card-mid)',
+            fontWeight: 700,
+            fontSize: 15,
+            letterSpacing: 0.5,
+            color: '#fff',
           }}
         >
           {initials(contact.name)}

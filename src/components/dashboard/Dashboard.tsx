@@ -75,6 +75,12 @@ export function Dashboard() {
   const visibleContacts =
     statusFilter === 'all' ? contacts : contacts.filter((c) => c.status === statusFilter);
 
+  // Lookup id→contatto e quanti dei selezionati sono senza score (per "Valuta selezionati").
+  const contactById = new Map(contacts.map((c) => [c.id, c]));
+  const selectedMissingScore = [...selected].filter(
+    (id) => contactById.get(id)?.score == null,
+  ).length;
+
   // Contatti pronti per una sessione invii: "da_fare" non ancora invitati
   // (a freddo o già scaldati con like/commento).
   const readyToInvite = contacts.filter(
@@ -139,19 +145,27 @@ export function Dashboard() {
     setCollecting(false);
   }
 
-  async function backfillScores() {
+  // ids opzionale: valuta solo i profili selezionati (meno chiamate Gemini).
+  async function backfillScores(ids?: string[]) {
     setBackfilling(true);
     setBanner(null);
     try {
-      const r = await api.backfill();
+      const r = await api.backfill(ids);
       if (!r.ok) setBanner(`Errore: ${r.error}`);
-      else if (r.missing === 0) setBanner('✓ Nessun contatto senza score.');
+      else if (r.missing === 0) setBanner('✓ Nessun contatto senza score da valutare.');
       else setBanner(`✓ Score completati: ${r.fixed}/${r.missing} valutati.`);
+      if (ids?.length) setSelected(new Set());
       await loadAll();
     } catch (e) {
       setBanner(`Errore: ${e instanceof Error ? e.message : e}`);
     }
     setBackfilling(false);
+  }
+
+  // Spunta in un colpo tutti i contatti senza score attualmente visibili.
+  function selectMissingScore() {
+    const ids = visibleContacts.filter((c) => c.score == null).map((c) => c.id);
+    setSelected(new Set(ids));
   }
 
   return (
@@ -167,8 +181,21 @@ export function Dashboard() {
             </button>
           )}
           {tab === 'persone' && (insights?.missingScore ?? 0) > 0 && (
-            <button onClick={backfillScores} disabled={backfilling} style={collectBtn}>
-              {backfilling ? 'Valuto…' : `✨ Completa score (${insights?.missingScore})`}
+            <button
+              onClick={() =>
+                selectedMissingScore > 0
+                  ? backfillScores([...selected].filter((id) => contactById.get(id)?.score == null))
+                  : backfillScores()
+              }
+              disabled={backfilling}
+              style={collectBtn}
+              title="Valuta i profili senza score (tutti, o solo i selezionati). Clicca dopo 'Aggiorna persone'."
+            >
+              {backfilling
+                ? 'Valuto…'
+                : selectedMissingScore > 0
+                  ? `✨ Valuta selezionati (${selectedMissingScore})`
+                  : `✨ Completa score (${insights?.missingScore})`}
             </button>
           )}
           {tab !== 'profilo' && tab !== 'stats' && (
@@ -260,6 +287,24 @@ export function Dashboard() {
                 {f.label}
               </button>
             ))}
+            {/* scorciatoia: spunta tutti i profili senza score (per dividere la valutazione) */}
+            {visibleContacts.some((c) => c.score == null) && (
+              <button
+                onClick={selectMissingScore}
+                style={{
+                  padding: '6px 11px',
+                  borderRadius: 999,
+                  border: '1px solid var(--gold)',
+                  background: 'transparent',
+                  color: 'var(--gold)',
+                  fontSize: 12.5,
+                  cursor: 'pointer',
+                }}
+                title="Seleziona tutti i profili senza score in questa vista"
+              >
+                ✨ Spunta senza score
+              </button>
+            )}
           </div>
 
           {/* barra azioni multiple (categorie in alto a destra) */}
@@ -277,9 +322,22 @@ export function Dashboard() {
               }}
             >
               <div style={{ fontSize: 12, color: 'var(--text-mid)', marginBottom: 8 }}>
-                {selected.size} selezionati — sposta in:
+                {selected.size} selezionati
+                {selectedMissingScore > 0 ? ` (${selectedMissingScore} senza score)` : ''} —
+                azioni:
               </div>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {selectedMissingScore > 0 && (
+                  <button
+                    onClick={() =>
+                      backfillScores([...selected].filter((id) => contactById.get(id)?.score == null))
+                    }
+                    disabled={backfilling}
+                    style={{ ...barChip, borderColor: 'var(--gold)', color: 'var(--gold)' }}
+                  >
+                    {backfilling ? 'Valuto…' : `✨ Valuta selezionati (${selectedMissingScore})`}
+                  </button>
+                )}
                 {categories.map((c) => (
                   <button key={c.id} onClick={() => bulkCategory(c.name)} style={barChip}>
                     {c.emoji ? `${c.emoji} ` : ''}

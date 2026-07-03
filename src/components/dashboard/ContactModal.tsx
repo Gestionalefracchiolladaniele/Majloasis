@@ -4,6 +4,18 @@ import { useState } from 'react';
 import type { Contact, Category, ContactStatus, RelStatus } from '@/lib/types';
 import { api } from '@/lib/api';
 
+// Avatar iniziali (khadinakbar non dà la foto). Stesse regole della ContactCard.
+function initials(name: string | null): string {
+  if (!name) return '?';
+  return name.split(' ').map((s) => s[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+}
+function avatarColor(name: string | null): string {
+  if (!name) return 'hsl(0 0% 20%)';
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 360;
+  return `hsl(${h} 32% 24%)`;
+}
+
 // Pop-up al tap su una card: tutte le info scrapate + azioni.
 const STATUSES: { value: ContactStatus; label: string }[] = [
   { value: 'da_valutare', label: '📥 Da valutare' },
@@ -147,9 +159,18 @@ export function ContactModal({
                 width: 64,
                 height: 64,
                 borderRadius: '50%',
-                background: 'rgba(0,0,0,0.06)',
+                flexShrink: 0,
+                background: avatarColor(contact.name),
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 700,
+                fontSize: 22,
+                color: '#fff',
               }}
-            />
+            >
+              {initials(contact.name)}
+            </div>
           )}
           <div style={{ flex: 1 }}>
             <h2 style={{ margin: 0, fontSize: 20, fontFamily: 'var(--font-display)' }}>

@@ -110,11 +110,14 @@ export const api = {
       })
       .finally(() => clearTimeout(t));
   },
-  // Ri-valuta i contatti rimasti senza score (Gemini li ha saltati). No Apify.
-  backfill: () =>
-    fetch('/api/backfill', { method: 'POST' }).then((r) =>
-      json<{ ok: boolean; missing: number; fixed: number; error?: string }>(r),
-    ),
+  // Valuta i contatti senza score. Con ids → solo i selezionati (meno chiamate Gemini);
+  // senza ids → tutti quelli null. No Apify (riusa i dati in DB).
+  backfill: (ids?: string[]) =>
+    fetch('/api/backfill', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(ids?.length ? { ids } : {}),
+    }).then((r) => json<{ ok: boolean; missing: number; fixed: number; error?: string }>(r)),
   // Time machine: ri-valuta i contatti col profilo utente aggiornato. No Apify.
   revalue: () =>
     fetch('/api/revalue', { method: 'POST' }).then((r) =>

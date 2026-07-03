@@ -256,7 +256,10 @@ export interface BackfillResult {
   fixed: number; // contatti a cui abbiamo assegnato uno score
 }
 
-export async function runBackfillScores(limit = 60): Promise<BackfillResult> {
+export async function runBackfillScores(
+  limit = 60,
+  ids?: string[],
+): Promise<BackfillResult> {
   const db = supabaseAdmin();
 
   const { data: userRows } = await db
@@ -267,11 +270,14 @@ export async function runBackfillScores(limit = 60): Promise<BackfillResult> {
   const summary: string | null = userRows?.[0]?.summary ?? null;
   const prefs: UserPreferences | null = userRows?.[0]?.preferences ?? null;
 
-  const { data: rows } = await db
+  // Se arriva una lista di id (selezione dell'utente in dashboard), valuta SOLO quelli
+  // (comunque solo i loro senza score) → meno chiamate Gemini. Altrimenti tutti i null.
+  let q = db
     .from('contacts')
     .select('id, linkedin_url, name, headline, company, location, raw')
-    .is('score', null)
-    .limit(limit);
+    .is('score', null);
+  if (ids?.length) q = q.in('id', ids);
+  const { data: rows } = await q.limit(limit);
 
   const pending = rows ?? [];
   if (!pending.length) return { missing: 0, fixed: 0 };
