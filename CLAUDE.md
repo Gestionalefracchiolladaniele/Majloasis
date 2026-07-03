@@ -75,17 +75,23 @@ dell'utente, li organizza in una dashboard mobile, e l'utente invia le richieste
 ### Flusso giornaliero
 ```
 GitHub Actions (cron mattutino)
-  → Apify cerca profili nuovi per parole chiave/città (esclude i già visti, dedup URL + semantica)
+  → Apify (khadinakbar) cerca profili nuovi: ROTAZIONE keyword+città (Dubai/Sharjah/Ajman),
+    esclude i già visti (dedup URL + semantica)
   → Apify cerca offerte di lavoro inerenti al profilo utente
   → Gemini valuta in BATCH (gruppi da ~15): score 0-100 + genere + 1 riga "perché" + categoria + badge
   → Supabase salva tutto con stato "Da valutare"
   → Dashboard pronta quando l'utente apre il telefono
 ```
+> **NB trigger manuale vs cron:** il bottone "↻ Aggiorna persone" (`/api/collect`) usa
+> `skipEval` → salva subito i lead SENZA valutarli (veloce, sta sotto i 60s di Vercel hobby);
+> lo score si completa poi con "✨ Completa score". Il cron notturno invece valuta in linea.
+> Vedi la nota "Scelta dell'Actor" sotto per il perché (khadinakbar è lento e non pagina).
 
 ### Schema dati (sintesi — fonte: `supabase/schema.sql`)
 - **`user_profile`** — il "cervello": `summary` (profilo sintetico Gemini), `preferences`
   (jsonb: keywords, cities, exclusions, gender_rule, le 5 risposte, `min_followers`/
-  `max_followers`/`reach_preset`, stato interno `_lastProfilePage`), `raw_scrape`.
+  `max_followers`/`reach_preset`, stato interno `_lastProfilePage` = **indice di rotazione**
+  keyword+città per khadinakbar, non più "pagina"), `raw_scrape`.
 - **`contacts`** — profili raccolti: `linkedin_url` (unique, dedup), `name/headline/
   company/location/photo_url`, `raw` (jsonb Apify), `score`, `gender_guess`, `reason`,
   `badges[]`, `category`, `status` (`da_valutare|da_fare|fatto|non_fare`), `message`
@@ -112,7 +118,7 @@ GitHub Actions (cron mattutino)
 | `APIFY_PROFILE_MODE` | no | `Short` | Solo per harvestapi: `Short` / `Full` (dà i follower). Ignorato da khadinakbar. |
 | `APIFY_PROFILE_ACTOR` | no | `khadinakbar~linkedin-profile-search-scraper` | Actor ricerca profili. Default no-cookie, pay-per-event, **senza** il cap "10 run/mese" di harvestapi (vedi nota sotto). |
 | `APIFY_PROFILE_DETAIL_ACTOR` / `APIFY_JOB_ACTOR` | no | harvestapi~… | override Actor Apify (scrape singolo profilo / lavori) |
-| `COLLECT_PROFILE_LIMIT` / `COLLECT_JOB_LIMIT` | no | `15` / `15` | profili/lavori per giro |
+| `COLLECT_PROFILE_LIMIT` / `COLLECT_JOB_LIMIT` | no | `10` / `15` | profili/lavori per giro (profili a 10: khadinakbar più veloce → margine sotto i 60s Vercel) |
 
 #### Scelta dell'Actor di ricerca profili (perché khadinakbar, non harvestapi)
 Storia: l'Actor originale `harvestapi~linkedin-profile-search` **limita gli utenti free di
@@ -142,6 +148,22 @@ rimuove i marcatori RTL dai nomi arabi, per non sballare il guess del genere). R
 Actor non è "valido" finché non l'hai lanciato dal vivo col token e visto profili veri** —
 lo schema store spesso mente e il free-tier del singolo Actor è indipendente dal credito Apify.
 
+**Due comportamenti di khadinakbar che il codice deve gestire (`collect.ts`):**
+1. **Ignora la paginazione.** Cerca via Google (`source: serpapi`): con la stessa query
+   ritorna sempre i top profili → tutti duplicati → 0 lead nuovi. Perciò `runCollect` NON
+   pagina, ma **ruota keyword+città** ad ogni giro (indice salvato in `_lastProfilePage`,
+   riuso del campo). Città ristrette a **Dubai e dintorni ~10 min** (`CITY_ROTATION` =
+   Dubai/Sharjah/Ajman; Abu Dhabi escluso, è a ~1h30). Le keyword ruotano su sottoinsiemi
+   diversi delle `prefs.keywords` (`KEYWORD_ROTATION`).
+2. **È lento e variabile** (8-60s, dipende da Google). Per non sforare i **60s di Vercel
+   hobby** (`maxDuration=300` è ignorato su hobby → funzione troncata → spinner infinito):
+   - `DEFAULT_PROFILE_LIMIT = 10` (meno risultati da estrarre = più veloce).
+   - il **trigger manuale** `/api/collect` passa `skipEval: true` → salva i profili con
+     `score: null` SENZA Gemini (~4-8s); lo score si completa dopo con "✨ Completa score"
+     (`/api/backfill`). `api.collect` ha un `AbortController` (70s) come rete di sicurezza.
+   - il **cron** (`/api/cron/collect`) valuta invece in linea (nessuno spinner da bloccare;
+     se salta qualche score lo recupera il backfill).
+
 ### Ottimizzazione chiamate Gemini (vincolo: poche chiamate)
 - **Batching obbligatorio:** ~15 profili per chiamata (`BATCH_SIZE`). Lotti più grandi
   fanno talvolta saltare/troncare lo score di qualche profilo nel JSON.
@@ -164,7 +186,11 @@ lo schema store spesso mente e il free-tier del singolo Actor è indipendente da
 - **Categorie raggruppate in alto a destra:** selezioni N contatti → click categoria → spostati tutti insieme.
 - **Stati:** `📥 Da valutare → ⭐ Da fare → ✅ Fatto`, oppure `❌ Non fare`.
 - **Categorie custom** (es. Real Estate Dubai, Finance, Founder, Networking) — create dall'utente.
-- **No duplicati:** profili già visti vengono esclusi dalle nuove ricerche.
+- **No duplicati:** profili già visti vengono esclusi dalle nuove ricerche (dedup URL +
+  semantica). Per portare lead NUOVI ogni giro la ricerca **ruota** keyword+città (vedi
+  "Scelta dell'Actor"): premere "↻ Aggiorna persone" più volte fa avanzare la rotazione.
+- **Lead prima, score dopo:** "↻ Aggiorna persone" mostra subito i nuovi contatti (senza
+  score, in fondo alla lista); il bottone "✨ Completa score (N)" compare da solo e li valuta.
 - **Tracker anti-ban:** conteggio settimanale inviti (es. 47/100) + avviso quando ci si avvicina al limite.
 - **Preferenze:** pre-impostate in base al profilo utente, ma modificabili da un pannello nella dashboard.
 - **Genera messaggio = MESSAGGIO (DM post-accettazione)**, non la nota dell'invito. Flusso sicuro:
