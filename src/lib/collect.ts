@@ -18,6 +18,25 @@ function isDuplicateIdentity(p: RawProfile, knownKeys: Set<string>): boolean {
   return k !== null && knownKeys.has(k);
 }
 
+// Un profilo è "in zona" se cita Dubai/dintorni UAE in un qualsiasi campo testuale
+// (location, headline, azienda, o lo snippet grezzo dell'Actor). Serve perché
+// khadinakbar spesso lascia `location` vuota → senza questo, entrerebbero anche
+// eventuali profili non-UAE che Google infila nei risultati. Città entro ~10 min da
+// Dubai + termini UAE generici (l'esclusione dei profili altrove è più importante che
+// distinguere fra le città vicine).
+const UAE_SIGNAL = /dubai|sharjah|ajman|\buae\b|united arab emirates|emirat/i;
+function hasUaeSignal(p: RawProfile): boolean {
+  const rawText = (() => {
+    try {
+      return JSON.stringify(p.raw ?? {});
+    } catch {
+      return '';
+    }
+  })();
+  const haystack = [p.location, p.headline, p.company, rawText].filter(Boolean).join(' ');
+  return UAE_SIGNAL.test(haystack);
+}
+
 // Orchestratore del giro giornaliero: Apify → dedup → Gemini batch → Supabase.
 // Usato dalla route cron e da un eventuale trigger manuale.
 
@@ -136,11 +155,21 @@ export async function runCollect(
       .eq('id', userId);
   }
 
+  // Filtro GEOGRAFICO: khadinakbar (Google) a volte non restituisce `location`, e Google
+  // può infilare qualche profilo non-UAE. Teniamo solo chi ha ALMENO UN segnale "Dubai/UAE"
+  // in location / headline / company / testo grezzo (snippet). Chi non ha NESSUN segnale
+  // geografico viene scartato → alza la precisione "profilo davvero in zona" a ~90%+.
+  const geoProfiles = doPeople ? profiles.filter(hasUaeSignal) : profiles;
+  if (doPeople) {
+    result.profilesFound = geoProfiles.length; // conteggio dopo il filtro geo
+    console.log(`[collect] geo-filter: ${profiles.length} → ${geoProfiles.length} con segnale UAE`);
+  }
+
   // Filtro fascia follower: se il follower count è disponibile (modalità Full),
   // scarta chi è FUORI dalla fascia [min, max] prima di spendere Gemini su di lui.
   // In Short followers è null → il filtro numerico non si applica: a orientare
   // verso la fascia ci pensa Gemini (la fascia è passata nel prompt, vedi gemini.ts).
-  const filtered = profiles.filter(
+  const filtered = geoProfiles.filter(
     (p) => p.followers == null || (p.followers >= minFollowers && p.followers <= maxFollowers),
   );
 
