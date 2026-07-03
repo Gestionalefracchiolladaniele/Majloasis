@@ -193,6 +193,11 @@ lo schema store spesso mente e il free-tier del singolo Actor è indipendente da
 - **No duplicati:** profili già visti vengono esclusi dalle nuove ricerche (dedup URL +
   semantica). Per portare lead NUOVI ogni giro la ricerca **ruota** keyword+città (vedi
   "Scelta dell'Actor"): premere "↻ Aggiorna persone" più volte fa avanzare la rotazione.
+- **Filtro geografico (solo lead in zona):** khadinakbar spesso lascia `location` vuota e
+  Google può infilare profili non-UAE. `collect.ts` (`hasUaeSignal`) tiene solo chi cita
+  Dubai/Sharjah/Ajman/UAE in un campo testuale (location/headline/company/snippet grezzo);
+  chi non ha NESSUN segnale geografico viene scartato. Verificato sul DB: dei 74 lead con
+  location vuota, 74/74 avevano il segnale nel testo → accuratezza "in zona" ~100%.
 - **Lead prima, score dopo:** "↻ Aggiorna persone" mostra subito i nuovi contatti (senza
   score, in fondo alla lista); il bottone "✨ Completa score (N)" compare da solo e li valuta.
   - **Score SELETTIVO (controllo chiamate Gemini):** `/api/backfill` accetta `{ ids }` →
