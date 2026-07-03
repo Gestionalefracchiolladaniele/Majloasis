@@ -1,18 +1,19 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import type { Contact, Job, Category, UserProfile, ContactStatus } from '@/lib/types';
+import type { Contact, Job, Category, UserProfile, ContactStatus, CommentPost } from '@/lib/types';
 import { api, type OutreachStats, type InsightStats } from '@/lib/api';
 import { ContactCard } from './ContactCard';
 import { ContactModal } from './ContactModal';
 import { JobCard } from './JobCard';
+import { CommentPostCard } from './CommentPostCard';
 import { ProfileSetup } from './ProfileSetup';
 import { Tracker } from './Tracker';
 import { Insights } from './Insights';
 import { OutreachSession } from './OutreachSession';
 import { Copilot } from './Copilot';
 
-type Tab = 'persone' | 'lavori' | 'stats' | 'profilo';
+type Tab = 'persone' | 'lavori' | 'commenta' | 'stats' | 'profilo';
 
 const STATUS_FILTERS: { value: ContactStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'Tutti' },
@@ -26,6 +27,8 @@ export function Dashboard() {
   const [tab, setTab] = useState<Tab>('persone');
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [posts, setPosts] = useState<CommentPost[]>([]);
+  const [findingPosts, setFindingPosts] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [stats, setStats] = useState<OutreachStats | null>(null);
@@ -45,12 +48,18 @@ export function Dashboard() {
     setContacts(contacts);
   }, []);
 
+  const loadPosts = useCallback(async () => {
+    const { posts } = await api.comments.list();
+    setPosts(posts);
+  }, []);
+
   const loadAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [c, j, cat, p, s, ins] = await Promise.all([
+      const [c, j, pst, cat, p, s, ins] = await Promise.all([
         api.contacts.list(),
         api.jobs.list(),
+        api.comments.list(),
         api.categories.list(),
         api.profile.get(),
         api.outreach.stats(),
@@ -58,6 +67,7 @@ export function Dashboard() {
       ]);
       setContacts(c.contacts);
       setJobs(j.jobs);
+      setPosts(pst.posts);
       setCategories(cat.categories);
       setProfile(p.profile);
       setStats(s);
@@ -145,6 +155,26 @@ export function Dashboard() {
     setCollecting(false);
   }
 
+  // Tab "Commenta": scrape on-demand di post recenti su cui commentare a mano.
+  async function findPosts() {
+    setFindingPosts(true);
+    setBanner(null);
+    try {
+      const r = await api.comments.find();
+      if (!r.ok) {
+        setBanner(`Errore: ${r.error}`);
+      } else if (r.saved > 0) {
+        setBanner(`✓ ${r.saved} nuovi post da commentare (${r.found} trovati, ${r.fresh} nuovi).`);
+      } else {
+        setBanner(`Nessun nuovo post. ${r.note ?? 'Riprova più tardi.'}`);
+      }
+      await loadPosts();
+    } catch (e) {
+      setBanner(`Errore: ${e instanceof Error ? e.message : e}`);
+    }
+    setFindingPosts(false);
+  }
+
   // ids opzionale: valuta solo i profili selezionati (meno chiamate Gemini).
   async function backfillScores(ids?: string[]) {
     setBackfilling(true);
@@ -198,7 +228,7 @@ export function Dashboard() {
                   : `✨ Completa score (${insights?.missingScore})`}
             </button>
           )}
-          {tab !== 'profilo' && tab !== 'stats' && (
+          {(tab === 'persone' || tab === 'lavori') && (
             <button
               onClick={() => collectNow(tab === 'lavori' ? 'jobs' : 'people')}
               disabled={collecting}
@@ -209,6 +239,16 @@ export function Dashboard() {
                 : tab === 'lavori'
                   ? '↻ Aggiorna lavori'
                   : '↻ Aggiorna persone'}
+            </button>
+          )}
+          {tab === 'commenta' && (
+            <button
+              onClick={findPosts}
+              disabled={findingPosts}
+              style={{ ...collectBtn, borderColor: 'var(--gold)', color: 'var(--gold)' }}
+              title="Cerca post recenti (ultime ore) su cui commentare a mano"
+            >
+              {findingPosts ? 'Cerco…' : '🔄 Trova 10 post'}
             </button>
           )}
         </div>
@@ -236,7 +276,7 @@ export function Dashboard() {
 
       {/* tabs */}
       <nav style={{ display: 'flex', gap: 8, margin: '16px 0' }}>
-        {(['persone', 'lavori', 'stats', 'profilo'] as Tab[]).map((t) => (
+        {(['persone', 'lavori', 'commenta', 'stats', 'profilo'] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -257,9 +297,11 @@ export function Dashboard() {
               ? '👤 Persone'
               : t === 'lavori'
                 ? '💼 Lavori'
-                : t === 'stats'
-                  ? '📊 Stats'
-                  : '⚙️ Profilo'}
+                : t === 'commenta'
+                  ? '💬 Commenta'
+                  : t === 'stats'
+                    ? '📊 Stats'
+                    : '⚙️ Profilo'}
           </button>
         ))}
       </nav>
@@ -395,6 +437,33 @@ export function Dashboard() {
             </p>
           )}
         </div>
+      )}
+
+      {tab === 'commenta' && !loading && (
+        <>
+          <div style={{ fontSize: 12.5, color: 'var(--text-mid)', marginBottom: 12 }}>
+            Post recenti su cui commentare a mano per farti notare. Il commento si genera a comando,
+            poi apri il post e incolli tu.{' '}
+            {(() => {
+              const weekAgo = Date.now() - 7 * 86_400_000;
+              const n = posts.filter(
+                (p) => p.commented_at && new Date(p.commented_at).getTime() >= weekAgo,
+              ).length;
+              return n > 0 ? <strong style={{ color: 'var(--gold)' }}>✅ {n} commentati questa settimana.</strong> : null;
+            })()}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {posts.map((p) => (
+              <CommentPostCard key={p.id} post={p} onChanged={loadPosts} />
+            ))}
+            {!posts.length && (
+              <p style={{ color: 'var(--text-low)', textAlign: 'center', marginTop: 30 }}>
+                Nessun post ancora. Premi &quot;🔄 Trova 10 post&quot; per cercare post recenti su cui
+                commentare.
+              </p>
+            )}
+          </div>
+        </>
       )}
 
       {tab === 'stats' && !loading && <Insights stats={insights} />}

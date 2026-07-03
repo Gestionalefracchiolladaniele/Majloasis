@@ -65,6 +65,26 @@ export interface Category {
   created_at: string;
 }
 
+// Post LinkedIn recente su cui commentare (tab "Commenta"). Mirror di comment_posts.
+export interface CommentPost {
+  id: string;
+  post_url: string;
+  author_url: string | null;
+  author_name: string | null;
+  author_headline: string | null;
+  author_photo: string | null;
+  content: string | null;
+  posted_at: string | null;
+  likes: number | null;
+  comments: number | null;
+  raw: Record<string, unknown> | null;
+  score: number | null;
+  reason: string | null;
+  draft_comment: string | null; // generato on-demand, poi in cache
+  commented_at: string | null; // segnato quando si commenta a mano (tracker)
+  created_at: string;
+}
+
 export interface UserPreferences {
   keywords: string[];
   cities: string[];
@@ -120,4 +140,11 @@ export interface JobEvaluation {
   index: number;
   score: number;
   reason: string;
+}
+
+// Shape returned by Gemini for each evaluated post in a batch (tab "Commenta").
+export interface PostEvaluation {
+  index: number;
+  score: number; // rilevanza vs profilo utente + qualità del post per farsi notare
+  reason: string; // una riga: perché vale (o no) la pena commentarlo
 }

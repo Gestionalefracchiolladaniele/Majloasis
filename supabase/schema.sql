@@ -138,6 +138,39 @@ create table if not exists public.copilot_messages (
 create index if not exists copilot_messages_created_idx on public.copilot_messages (created_at);
 
 -- ─────────────────────────────────────────────────────────────
+-- comment_posts : tab "Commenta" — post LinkedIn recenti (di gente NON in
+-- contacts) su cui l'utente può lasciare un commento di valore per farsi notare.
+-- Top-of-funnel: si commenta a mano, e i migliori si promuovono in `contacts`.
+-- Il commento (draft_comment) si genera ON-DEMAND (bottone) e resta in cache.
+-- La tabella funge anche da memoria anti-duplicati: post_url + author_url già
+-- visti non vengono riproposti al giro successivo → "gente sempre diversa".
+-- ─────────────────────────────────────────────────────────────
+create table if not exists public.comment_posts (
+  id            uuid primary key default gen_random_uuid(),
+  post_url      text not null unique,        -- dedup post: niente lo stesso post due volte
+  author_url    text,                        -- profilo dell'autore (dedup persona + "Apri profilo")
+  author_name   text,
+  author_headline text,
+  author_photo  text,
+  content       text,                        -- testo del post (per decidere + generare il commento)
+  posted_at     timestamptz,                 -- data reale del post (freschezza: mostra solo i recenti)
+  likes         int default 0,
+  comments      int default 0,
+  raw           jsonb,
+  score         int,                         -- rilevanza vs profilo utente (Gemini, come i lead)
+  reason        text,                        -- una riga: perché vale la pena commentare
+  draft_comment text,                        -- commento generato on-demand (cache: niente ri-chiamate)
+  commented_at  timestamptz,                 -- segnato quando l'utente ha commentato a mano (tracker)
+  created_at    timestamptz not null default now()
+);
+
+-- indici: freschezza (posted_at), ranking (score), tracker (commented_at), dedup persona.
+create index if not exists comment_posts_posted_idx on public.comment_posts (posted_at desc);
+create index if not exists comment_posts_score_idx  on public.comment_posts (score desc);
+create index if not exists comment_posts_commented_idx on public.comment_posts (commented_at desc);
+create index if not exists comment_posts_author_idx on public.comment_posts (lower(author_url));
+
+-- ─────────────────────────────────────────────────────────────
 -- Seed: categorie iniziali suggerite (modificabili / cancellabili)
 -- ─────────────────────────────────────────────────────────────
 insert into public.categories (name, emoji, color) values
@@ -165,6 +198,7 @@ alter table public.jobs         enable row level security;
 alter table public.categories   enable row level security;
 alter table public.outreach_log enable row level security;
 alter table public.copilot_messages enable row level security;
+alter table public.comment_posts enable row level security;
 
 do $$
 begin
@@ -186,5 +220,8 @@ begin
   end if;
   if not exists (select 1 from pg_policies where tablename='copilot_messages' and policyname='anon read') then
     create policy "anon read" on public.copilot_messages for select using (true);
+  end if;
+  if not exists (select 1 from pg_policies where tablename='comment_posts' and policyname='anon read') then
+    create policy "anon read" on public.comment_posts for select using (true);
   end if;
 end $$;

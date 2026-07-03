@@ -3,9 +3,10 @@ import { env } from './env';
 import type {
   ContactEvaluation,
   JobEvaluation,
+  PostEvaluation,
   UserPreferences,
 } from './types';
-import type { RawProfile, RawJob } from './apify';
+import type { RawProfile, RawJob, RawPost } from './apify';
 
 // ─────────────────────────────────────────────────────────────
 // Gemini integration — modello gemini-2.5-flash-lite.
@@ -243,6 +244,96 @@ export async function evaluateJobs(
   }
 
   return out;
+}
+
+// ── Valutazione POST in batch (tab "Commenta") ───────────────
+// Come i lead, ma il metro è: vale la pena che l'utente commenti QUESTO post per
+// farsi notare? Alto score = post pertinente al suo profilo, di una persona di
+// calibro/target, abbastanza vivo (visibilità), non spam/promo/off-topic.
+function buildPostPrompt(
+  posts: RawPost[],
+  summary: string | null,
+  prefs: UserPreferences | null,
+): string {
+  const list = posts
+    .map((p, i) => {
+      return `#${i}
+autore: ${p.author_name ?? '?'}
+headline autore: ${p.author_headline ?? '?'}
+engagement: ${p.likes ?? 0} like, ${p.comments ?? 0} commenti
+testo del post (troncato): ${(p.content ?? '').slice(0, 700)}`;
+    })
+    .join('\n\n');
+
+  return `Sei un assistente che valuta POST LinkedIn su cui l'utente potrebbe lasciare un commento di valore
+per FARSI NOTARE (top-of-funnel del networking verso Dubai). L'azione è manuale: l'utente commenterà a mano.
+
+${prefsBlock(summary, prefs)}
+
+REGOLE DI VALUTAZIONE (score 0-100 = quanto vale la pena commentare questo post):
+1. RILEVANZA col profilo utente: il tema del post tocca AI, tech, engineering, startup/founder, Dubai/UAE? Più è nelle sue corde, più alto (un commento competente lo fa spiccare).
+2. CALIBRO dell'autore: founder, CEO, investitore, tech leader, senior → alto. Profili operativi/junior o account spam/aziendali generici → basso.
+3. VISIBILITÀ del post: un post con un minimo di engagement dà più esposizione al commento. Post morti (0-1 interazioni) → penalizza un po'. Ma NON premiare i mega-virali off-topic.
+4. SCARTA (score <25): spam, promo/annunci pubblicitari, offerte di lavoro generiche, catene, post off-topic (immobiliare puro, affiliate marketing, motivazionale generico) o senza aggancio possibile per un AI engineer.
+5. reason: UNA riga in italiano — perché vale (o no) la pena commentarlo, e l'angolo che l'utente potrebbe usare.
+
+Rispondi SOLO con un array JSON, un oggetto per post, nello stesso ordine:
+[{"index": <numero #>, "score": <0-100>, "reason": "<una riga>"}]
+
+POST DA VALUTARE:
+${list}`;
+}
+
+export async function evaluatePosts(
+  posts: RawPost[],
+  summary: string | null,
+  prefs: UserPreferences | null,
+): Promise<Map<string, PostEvaluation>> {
+  const out = new Map<string, PostEvaluation>(); // keyed by post_url
+
+  for (let i = 0; i < posts.length; i += BATCH_SIZE) {
+    const batch = posts.slice(i, i + BATCH_SIZE);
+    const prompt = buildPostPrompt(batch, summary, prefs);
+    let evals: PostEvaluation[] = [];
+    try {
+      const text = await generate(prompt);
+      evals = parseJsonArray<PostEvaluation>(text);
+    } catch (e) {
+      console.error('Gemini batch error (posts):', e);
+    }
+    for (const ev of evals) {
+      const post = batch[ev.index];
+      if (post) out.set(post.post_url, ev);
+    }
+    if (i + BATCH_SIZE < posts.length) await sleep(SLEEP_MS);
+  }
+
+  return out;
+}
+
+// ── Genera UN commento LinkedIn (on-demand, tab "Commenta") ────
+// Una sola variante, nel tono dell'utente. Si copia e si pubblica A MANO.
+export async function generateComment(
+  post: { author_name: string | null; author_headline: string | null; content: string | null },
+  summary: string | null,
+  prefs: UserPreferences | null,
+): Promise<string> {
+  const prompt = `Scrivi UN commento LinkedIn (1-3 frasi, max ~50 parole) da lasciare sotto il post qui sotto,
+per farti notare in modo credibile. NON deve sembrare AI né adulazione vuota: aggiungi valore reale
+(un'osservazione competente, un'esperienza pertinente o una domanda intelligente). Tono umano e sicuro,
+da pari a pari. Stessa lingua del post (di solito inglese). Niente hashtag, niente emoji a raffica
+(al massimo uno se naturale). Niente "Great post!" generico.
+
+CHI COMMENTA (utente):
+${summary || 'AI-native Full-Stack Engineer, punta a networking verso Dubai'}
+Cosa offre / angolo: ${prefs?.offer ?? 'AI-native Full-Stack Engineer'}
+
+POST (di ${post.author_name ?? 'un professionista'}${post.author_headline ? `, ${post.author_headline}` : ''}):
+${(post.content ?? '').slice(0, 1200)}
+
+Restituisci solo il testo del commento, senza virgolette.`;
+
+  return generate(prompt, { json: false, temperature: 0.7 });
 }
 
 // ── Riassunto del profilo utente (una volta sola) ─────────────
