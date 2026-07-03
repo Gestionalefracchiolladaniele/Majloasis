@@ -3,6 +3,34 @@
 Storico delle decisioni operative e delle modifiche. Il `CLAUDE.md` descrive solo
 lo stato *corrente*; qui sta la cronologia.
 
+## 2026-07 — Fix "caricamento infinito" + lead nuovi con khadinakbar
+
+Dopo il passaggio a khadinakbar, il bottone "↻ Aggiorna persone" su Vercel restava in
+**caricamento infinito** e non comparivano lead nuovi. Due cause distinte, entrambe risolte:
+
+- **Timeout serverless (spinner infinito):** la collect faceva Apify (khadinakbar è
+  lento, cerca via Google) + Gemini in batch con sleep, sforando i **60s** del piano
+  Vercel hobby (`maxDuration=300` è ignorato su hobby). La funzione veniva troncata → la
+  fetch client non riceveva risposta → spinner infinito.
+  - Fix: `runCollect` ha ora `skipEval` (attivo dal trigger manuale `/api/collect`): salva
+    subito i profili con `score: null` **senza** chiamare Gemini (~4s invece di 40-60s) →
+    i lead **compaiono subito** in dashboard. Lo score si completa dopo col bottone già
+    esistente "✨ Completa score" (`/api/backfill`). La lista li mostra in fondo
+    (`/api/contacts` ordina `nullsFirst:false`, non li nasconde).
+  - Rete di sicurezza: `api.collect` ([src/lib/api.ts](src/lib/api.ts)) ora ha un
+    `AbortController` (70s) → se la funzione viene troncata, la fetch fallisce con un
+    messaggio leggibile invece di girare all'infinito.
+- **0 lead nuovi (sempre gli stessi profili):** khadinakbar cerca via Google e **IGNORA
+  la paginazione** (`page` non ha effetto) → con la stessa query ritorna sempre i top
+  profili → tutti già in DB → 0 nuovi.
+  - Fix: **rotazione keyword+città** in [src/lib/collect.ts](src/lib/collect.ts). Ogni giro
+    usa una combinazione diversa (indice salvato in `_lastProfilePage`, riuso del campo).
+    Città ristrette a **Dubai e dintorni entro ~10 min** (Dubai/Sharjah/Ajman; Abu Dhabi
+    escluso). Testato dal vivo: 3 giri → 27 lead nuovi.
+- **Limite ridotto a 10** (`DEFAULT_PROFILE_LIMIT`): khadinakbar è più veloce con meno
+  risultati da estrarre → più margine sotto i 60s. Con la rotazione bastano a portare
+  lead nuovi ogni giro.
+
 ## 2026-07 — Cambio Actor ricerca profili (fix "free user run limit reached")
 
 - **Sintomo:** dopo il 28 giugno la raccolta profili restituiva 0 risultati ogni giorno,

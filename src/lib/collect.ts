@@ -27,7 +27,10 @@ function isDuplicateIdentity(p: RawProfile, knownKeys: Set<string>): boolean {
 // 15 (non 25/50): meno profili per giro = Apify costa meno per giro, e soprattutto
 // Gemini valuta lotti più piccoli con meno score saltati (JSON meno lungo da generare).
 // Allineato al ritmo invii dell'utente (~15-20/giorno). Override via env se serve di più.
-const DEFAULT_PROFILE_LIMIT = Number(process.env.COLLECT_PROFILE_LIMIT ?? 15);
+// 10 (non 15): khadinakbar cerca via Google e il tempo cresce col n. di risultati da
+// estrarre; con 10 sta più comodamente sotto i 60s di Vercel hobby. Con la rotazione
+// keyword+città bastano comunque a portare lead nuovi ogni giro. Override via env.
+const DEFAULT_PROFILE_LIMIT = Number(process.env.COLLECT_PROFILE_LIMIT ?? 10);
 const DEFAULT_JOB_LIMIT = Number(process.env.COLLECT_JOB_LIMIT ?? 15);
 
 export interface CollectResult {
@@ -41,9 +44,18 @@ export interface CollectResult {
 }
 
 export async function runCollect(
-  opts: { profileLimit?: number; jobLimit?: number; what?: 'all' | 'people' | 'jobs' } = {},
+  opts: {
+    profileLimit?: number;
+    jobLimit?: number;
+    what?: 'all' | 'people' | 'jobs';
+    // Se true: salta la valutazione Gemini e salva i profili con score/eval null
+    // (veloce → sta sotto i 60s di Vercel hobby). Lo score si completa poi con
+    // /api/backfill ("Completa score"). Evita il timeout → niente spinner infinito.
+    skipEval?: boolean;
+  } = {},
 ): Promise<CollectResult> {
   const what = opts.what ?? 'all';
+  const skipEval = opts.skipEval ?? false;
   const doPeople = what === 'all' || what === 'people';
   const doJobs = what === 'all' || what === 'jobs';
   const db = supabaseAdmin();
@@ -63,6 +75,25 @@ export async function runCollect(
     ? prefs.keywords
     : ['founder', 'CEO', 'investor', 'tech', 'AI'];
   const cities = prefs?.cities?.length ? prefs.cities : ['Dubai', 'UAE'];
+
+  // ── Rotazione ricerca (per khadinakbar) ──────────────────────────────────
+  // khadinakbar cerca via Google e IGNORA la paginazione: con la stessa query
+  // ritorna sempre i top profili → tutti duplicati → 0 lead nuovi. Per avere
+  // profili NUOVI ad ogni giro variamo la COMBINAZIONE keyword+città. Usiamo
+  // _lastProfilePage come indice di rotazione (riuso del campo esistente, no schema).
+  //
+  // Città: solo Dubai e dintorni entro ~10 min d'auto (Sharjah confina; Ajman è
+  // subito oltre Sharjah). Abu Dhabi (~1h30) è escluso di proposito.
+  const CITY_ROTATION = ['Dubai', 'Sharjah', 'Ajman'];
+  // Combinazioni di keyword: sottoinsiemi diversi delle keyword utente, così ogni
+  // giro Google vede una query diversa. Se l'utente ha poche keyword, degradano bene.
+  const kwPool = keywords.length ? keywords : ['founder', 'CEO', 'investor', 'tech', 'AI'];
+  const KEYWORD_ROTATION: string[][] = [
+    kwPool.slice(0, 3),
+    kwPool.slice(1, 4).length ? kwPool.slice(1, 4) : kwPool.slice(0, 3),
+    kwPool.slice(2, 5).length ? kwPool.slice(2, 5) : kwPool.slice(0, 3),
+    kwPool.slice(0, 2).length ? kwPool.slice(0, 2) : kwPool.slice(0, 3),
+  ].filter((s) => s.length);
   // Fascia follower target. Default "Modesto" (parti da 0): 500–3000. Sotto il min =
   // profili inattivi/poco utili; sopra il max = "pesci troppo grossi" irraggiungibili.
   const minFollowers = prefs?.min_followers ?? 500;
@@ -78,19 +109,30 @@ export async function runCollect(
   };
 
   // 2. PROFILI: scrape → dedup → valutazione → insert
-  // Paginazione: ogni giro avanza di una pagina così prende profili NUOVI.
-  const page = (prefs?._lastProfilePage ?? 0) + 1;
+  // Rotazione: ogni giro usa una combinazione keyword+città diversa (vedi sopra),
+  // così khadinakbar (che ignora la paginazione) restituisce profili NUOVI.
+  const rot = prefs?._lastProfilePage ?? 0; // riuso il campo come indice di rotazione
+  const rotKeywords = KEYWORD_ROTATION[rot % KEYWORD_ROTATION.length];
+  // Città: quella della rotazione, ma ristretta a quelle scelte dall'utente se le ha.
+  const allowedCities = cities.filter((c) => CITY_ROTATION.includes(c));
+  const cityPool = allowedCities.length ? allowedCities : CITY_ROTATION;
+  const rotCity = cityPool[rot % cityPool.length];
+
   const profiles = doPeople
-    ? await searchProfiles(keywords, cities, opts.profileLimit ?? DEFAULT_PROFILE_LIMIT, page)
+    ? await searchProfiles(
+        rotKeywords,
+        [rotCity],
+        opts.profileLimit ?? DEFAULT_PROFILE_LIMIT,
+        1,
+      )
     : [];
   result.profilesFound = profiles.length;
 
-  // Salva la pagina per il prossimo giro (torna a 1 se questa è vuota → riparte).
+  // Avanza l'indice di rotazione per il prossimo giro (combinazione diversa).
   if (doPeople && userId && prefs) {
-    const nextPage = profiles.length === 0 ? 1 : page;
     await db
       .from('user_profile')
-      .update({ preferences: { ...prefs, _lastProfilePage: nextPage } })
+      .update({ preferences: { ...prefs, _lastProfilePage: rot + 1 } })
       .eq('id', userId);
   }
 
@@ -129,9 +171,11 @@ export async function runCollect(
     result.profilesNew = fresh.length;
 
     if (fresh.length) {
-      const evals = await evaluateContacts(fresh, summary, prefs);
+      // skipEval: nessuna chiamata Gemini ora (i lead compaiono subito, score dopo
+      // con "Completa score"/backfill). Altrimenti valuta in batch come sempre.
+      const evals = skipEval ? null : await evaluateContacts(fresh, summary, prefs);
       const rows = fresh.map((p) => {
-        const ev = evals.get(p.linkedin_url);
+        const ev = evals?.get(p.linkedin_url);
         return {
           linkedin_url: p.linkedin_url,
           name: p.name,
@@ -175,9 +219,9 @@ export async function runCollect(
     result.jobsNew = fresh.length;
 
     if (fresh.length) {
-      const evals = await evaluateJobs(fresh, summary, prefs);
+      const evals = skipEval ? null : await evaluateJobs(fresh, summary, prefs);
       const rows = fresh.map((j) => {
-        const ev = evals.get(j.linkedin_url);
+        const ev = evals?.get(j.linkedin_url);
         return {
           linkedin_url: j.linkedin_url,
           title: j.title,

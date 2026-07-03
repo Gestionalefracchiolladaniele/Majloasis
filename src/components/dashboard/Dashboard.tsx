@@ -123,6 +123,7 @@ export function Dashboard() {
       } else if (what === 'people') {
         setBanner(
           `✓ Persone: ${r.profilesFound} trovati su Apify · ${r.profilesNew} nuovi · ${r.profilesSaved} salvati.` +
+            (r.profilesSaved > 0 ? ' Premi "✨ Completa score" per valutarli.' : '') +
             (r.note ? ` ⚠️ ${r.note}` : ''),
         );
       } else {

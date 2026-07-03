@@ -80,20 +80,36 @@ export const api = {
         body: JSON.stringify(body),
       }).then((r) => json<{ profile: UserProfile }>(r)),
   },
-  collect: (what: 'all' | 'people' | 'jobs' = 'all') =>
-    fetch(`/api/collect?what=${what}`, { method: 'POST' }).then((r) =>
-      json<{
-        ok: boolean;
-        profilesFound: number;
-        profilesNew: number;
-        profilesSaved: number;
-        jobsFound: number;
-        jobsNew: number;
-        jobsSaved: number;
-        note?: string;
-        error?: string;
-      }>(r),
-    ),
+  collect: (what: 'all' | 'people' | 'jobs' = 'all') => {
+    // Timeout di sicurezza: se la funzione serverless viene troncata (Vercel hobby
+    // tronca a 60s) la fetch resterebbe appesa → spinner infinito. Con l'abort dopo
+    // 70s la promise fallisce con un errore leggibile invece di girare per sempre.
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 70_000);
+    return fetch(`/api/collect?what=${what}`, { method: 'POST', signal: ctrl.signal })
+      .then((r) =>
+        json<{
+          ok: boolean;
+          profilesFound: number;
+          profilesNew: number;
+          profilesSaved: number;
+          jobsFound: number;
+          jobsNew: number;
+          jobsSaved: number;
+          note?: string;
+          error?: string;
+        }>(r),
+      )
+      .catch((e) => {
+        if (e?.name === 'AbortError') {
+          throw new Error(
+            'La raccolta sta impiegando troppo (timeout). Riprova o ricarica: alcuni lead potrebbero essere già stati salvati.',
+          );
+        }
+        throw e;
+      })
+      .finally(() => clearTimeout(t));
+  },
   // Ri-valuta i contatti rimasti senza score (Gemini li ha saltati). No Apify.
   backfill: () =>
     fetch('/api/backfill', { method: 'POST' }).then((r) =>
