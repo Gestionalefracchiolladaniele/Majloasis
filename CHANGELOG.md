@@ -3,6 +3,28 @@
 Storico delle decisioni operative e delle modifiche. Il `CLAUDE.md` descrive solo
 lo stato *corrente*; qui sta la cronologia.
 
+## 2026-07 — Cambio Actor ricerca profili (fix "free user run limit reached")
+
+- **Sintomo:** dopo il 28 giugno la raccolta profili restituiva 0 risultati ogni giorno,
+  con run `SUCCEEDED` ma status **"free user run limit reached"** — mentre il credito Apify
+  era ancora intatto ($0.71/$5.00). Causa: `harvestapi~linkedin-profile-search` limita gli
+  **utenti free** di Apify a **10 run/mese**; il cron giornaliero le esaurisce in ~10 giorni.
+  Il limite è del *singolo Actor* (HarvestAPI), non della piattaforma Apify.
+- **Fix:** cambiato l'Actor di default della ricerca profili in
+  **`khadinakbar~linkedin-profile-search-scraper`** (pay-per-event, no-cookie, **senza** cap
+  "10 run/mese"). Scelto dopo aver **testato dal vivo** col token vari candidati:
+  `get-leads` (SERP rate-limited → 0 profili), `curious_coder`/`bebity` (a noleggio),
+  `anchor` (solo enrichment da URL). khadinakbar restituisce founder/CEO reali di Dubai.
+- **Codice** ([src/lib/apify.ts](src/lib/apify.ts), [src/lib/env.ts](src/lib/env.ts)):
+  `searchProfiles()` ora manda i campi di più schemi insieme (`keywords`/`location`/
+  `maxResults` per khadinakbar + i campi harvestapi), così cambiare Actor via
+  `APIFY_PROFILE_ACTOR` non richiede toccare il codice. `normalizeProfile()` estesa ai
+  nomi-campo di khadinakbar (`jobTitle`, `currentCompany`, `snippet`, ricostruzione URL da
+  `publicIdentifier`). Aggiunto `cleanText()` che rimuove i marcatori RTL dai nomi arabi
+  (sballavano il guess del genere). Type-check + eslint puliti; flusso testato end-to-end.
+- **Nota:** khadinakbar non fornisce il n. follower → il filtro `max_followers` richiede di
+  tornare a harvestapi Full via `APIFY_PROFILE_ACTOR=harvestapi~linkedin-profile-search`.
+
 ## 2026-06 — Ottimizzazioni e nuove feature
 
 ### Rebranding

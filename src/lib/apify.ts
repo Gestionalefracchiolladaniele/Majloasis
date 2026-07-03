@@ -8,8 +8,10 @@ import { env } from './env';
 // Actor scelti sono "no cookie".
 //
 // Actor di default (override via env APIFY_PROFILE_ACTOR / APIFY_JOB_ACTOR):
-//  - profili: dev_fusion/linkedin-profile-scraper  (~$1/1k, no cookie)
-//  - lavori:  bebity/linkedin-jobs-scraper
+//  - profili: khadinakbar~linkedin-profile-search-scraper (no cookie, PAY_PER_EVENT,
+//    nessun cap "10 run/mese" — a differenza di harvestapi. Testato dal vivo: torna
+//    founder/CEO reali. Input: keywords + location + maxResults).
+//  - lavori:  harvestapi~linkedin-job-search
 // Se un Actor non fosse disponibile sul tuo account, cambialo via env: usa lo
 // slug nel formato "username~actor-name".
 // ─────────────────────────────────────────────────────────────
@@ -63,10 +65,16 @@ export interface RawJob {
   raw: Record<string, unknown>;
 }
 
+// Rimuove i marcatori di direzione bidirezionale (RTL/LRM, es. da profili arabi)
+// e gli zero-width, che sporcano nome/first_name e sballano il guess del genere.
+function cleanText(s: string): string {
+  return s.replace(/[‎‏‪-‮⁦-⁩​-‍﻿]/g, '').trim();
+}
+
 function pick(o: Record<string, unknown>, keys: string[]): string | null {
   for (const k of keys) {
     const v = o[k];
-    if (typeof v === 'string' && v.trim()) return v.trim();
+    if (typeof v === 'string' && cleanText(v)) return cleanText(v);
   }
   return null;
 }
@@ -84,7 +92,11 @@ function pickNum(o: Record<string, unknown>, keys: string[]): number | null {
  *  Gestisce sia formati piatti sia la struttura annidata di harvestapi
  *  (location.linkedinText, currentPositions[], firstName/lastName, summary). */
 function normalizeProfile(item: Record<string, unknown>): RawProfile | null {
-  const url = pick(item, ['linkedinUrl', 'url', 'profileUrl', 'publicProfileUrl', 'inputUrl']);
+  // URL pieno, oppure ricostruito dal publicIdentifier (khadinakbar-search lo espone).
+  const publicId = pick(item, ['publicIdentifier', 'public_identifier']);
+  const url =
+    pick(item, ['linkedinUrl', 'url', 'profileUrl', 'publicProfileUrl', 'inputUrl']) ??
+    (publicId ? `https://www.linkedin.com/in/${publicId}` : null);
   if (!url) return null;
 
   const first = pick(item, ['firstName']);
@@ -100,15 +112,18 @@ function normalizeProfile(item: Record<string, unknown>): RawProfile | null {
       : null;
 
   const company =
-    pick(item, ['companyName', 'company']) ??
+    pick(item, ['companyName', 'company', 'currentCompany']) ??
     (firstPos ? pick(firstPos, ['companyName', 'company']) : null);
 
-  // headline: campo esplicito, oppure "Ruolo @ Azienda", oppure il summary
-  const role = firstPos ? pick(firstPos, ['title', 'position']) : null;
+  // headline: campo esplicito, oppure "Ruolo @ Azienda", oppure il summary.
+  // khadinakbar espone il ruolo come `jobTitle` a livello item.
+  const role =
+    pick(item, ['title', 'currentTitle', 'jobTitle']) ??
+    (firstPos ? pick(firstPos, ['title', 'position']) : null);
   const headline =
     pick(item, ['headline', 'occupation', 'subTitle']) ??
     (role && company ? `${role} @ ${company}` : role) ??
-    pick(item, ['summary']);
+    pick(item, ['summary', 'snippet']);
 
   // località: stringa piatta o annidata location.linkedinText
   let location = pick(item, ['location', 'addressWithCountry', 'geoLocationName', 'locationName']);
@@ -162,21 +177,26 @@ export async function searchProfiles(
   limit = 100,
   page = 1,
 ): Promise<RawProfile[]> {
-  // harvestapi-search fa una "fuzzy search": searchQuery va tenuta SEMPLICE
-  // (niente OR/parentesi), e la città va in `locations` (nomi estesi: "UAE" →
-  // "United Arab Emirates", "Dubai" resta "Dubai").
+  // searchQuery va tenuta SEMPLICE (niente OR/parentesi). "UAE" → nome esteso.
   const query = keywords.slice(0, 4).join(' ');
   const locations = cities.map((c) => (c.toUpperCase() === 'UAE' ? 'United Arab Emirates' : c));
 
+  // L'input contiene i campi degli schemi supportati, così la funzione resta valida
+  // qualunque sia l'Actor scelto via env (ognuno legge solo i campi che conosce):
+  //  - khadinakbar~linkedin-profile-search-scraper (default): keywords + location (stringa) + maxResults
+  //  - harvestapi~linkedin-profile-search (fallback): profileScraperMode + locations[] + maxItems + startPage
   const input: Record<string, unknown> = {
-    // harvestapi/linkedin-profile-search: profileScraperMode è OBBLIGATORIO.
-    // "Short" = solo info base (più economico). Override via APIFY_PROFILE_MODE.
+    // khadinakbar: ricerca profili da keyword+località (no cookie, PAY_PER_EVENT).
+    keywords: query,
+    location: locations[0] ?? '',
+    maxResults: limit,
+    // harvestapi (se ripristinato via env): profileScraperMode è OBBLIGATORIO per lui.
     profileScraperMode: process.env.APIFY_PROFILE_MODE || 'Short',
-    searchQuery: query,
     locations,
     maxItems: limit,
-    // Paginazione: ogni giro parte da una pagina diversa → profili NUOVI.
-    // Mando più nomi comuni; l'Actor usa quello che riconosce.
+    // comune / altri schemi
+    searchQuery: query,
+    // Paginazione: ogni giro parte da una pagina diversa → profili NUOVI (harvestapi).
     startPage: page,
     searchPage: page,
     page,

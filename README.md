@@ -39,7 +39,7 @@ Apri Supabase → **SQL Editor** → New query → incolla tutto [supabase/schem
 ### 3. Autorizza gli Actor su Apify (una volta)
 Gli Actor pubblici vanno "aperti" una volta dal tuo account per essere lanciabili via API.
 Apri ognuna di queste pagine e premi **"Try for free"** (o approva i permessi):
-- [harvestapi/linkedin-profile-search](https://apify.com/harvestapi/linkedin-profile-search) (ricerca profili)
+- [khadinakbar/linkedin-profile-search-scraper](https://apify.com/khadinakbar/linkedin-profile-search-scraper) (ricerca profili — default)
 - [harvestapi/linkedin-profile-scraper](https://apify.com/harvestapi/linkedin-profile-scraper) (scrape del tuo profilo)
 - [harvestapi/linkedin-job-search](https://apify.com/harvestapi/linkedin-job-search) (offerte di lavoro)
 
@@ -59,16 +59,24 @@ Poi, nelle rispettive tab: **"↻ Aggiorna persone"** e **"↻ Aggiorna lavori"*
 - In alternativa/aggiunta: GitHub Actions ([.github/workflows/daily.yml](.github/workflows/daily.yml))
   — imposta i Secrets del repo `APP_URL` e `CRON_SECRET`.
 
-## Actor Apify (default: harvestapi, no-cookie)
+## Actor Apify (no-cookie)
 | Compito | Actor (slug env) | Costo (Free) |
 |---|---|---|
-| Ricerca profili | `harvestapi~linkedin-profile-search` (Short) | ~$0.004/profilo |
+| Ricerca profili | `khadinakbar~linkedin-profile-search-scraper` | pay-per-event |
 | Scrape tuo profilo | `harvestapi~linkedin-profile-scraper` | trascurabile (raro) |
 | Ricerca lavori | `harvestapi~linkedin-job-search` | ~$1/1k |
 
-Con i **$5 gratis/mese** di Apify e la modalità **Short** raccogli ~1.000+ profili/mese — molto più
-del necessario (~500 contatti totali entro ottobre 2026). Se vuoi il **numero di follower** per il
-filtro numerico, passa a `APIFY_PROFILE_MODE=Full` (~2× il costo, comunque dentro i $5).
+> ⚠️ **Perché non harvestapi per la ricerca profili:** `harvestapi~linkedin-profile-search`
+> limita gli utenti **free** di Apify a **10 run/mese** (poi risponde "free user run limit
+> reached" con 0 risultati). Il cron giornaliero le esaurisce in ~10 giorni.
+> `khadinakbar~linkedin-profile-search-scraper` è **pay-per-event senza quel cap** e —
+> testato dal vivo — restituisce founder/CEO reali cercando per `keywords`+`location`.
+> Per tornare a harvestapi (es. da account Apify a pagamento):
+> `APIFY_PROFILE_ACTOR=harvestapi~linkedin-profile-search`.
+
+Con i **$5 gratis/mese** di Apify raccogli ~1.000+ profili/mese — molto più del necessario
+(~500 contatti totali entro ottobre 2026). Il **numero di follower** (filtro `max_followers`)
+richiede l'actor harvestapi in modalità Full, non fornito da khadinakbar.
 
 I nomi dei campi di input variano da Actor ad Actor: il codice ([src/lib/apify.ts](src/lib/apify.ts))
 manda più alias ed è tollerante, ma se cambi Actor verifica i campi sul suo input-schema.

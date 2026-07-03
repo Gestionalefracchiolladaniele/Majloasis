@@ -25,8 +25,11 @@ export const env = {
   get cronSecret() {
     return required('CRON_SECRET');
   },
-  // Ricerca profili (query → lista profili). harvestapi: collaudato, no-cookie.
-  apifyProfileActor: process.env.APIFY_PROFILE_ACTOR || 'harvestapi~linkedin-profile-search',
+  // Ricerca profili (query → lista profili). khadinakbar: no-cookie, PAY_PER_EVENT senza
+  // il cap "10 run/mese" che bloccava harvestapi~linkedin-profile-search sul piano free.
+  // Testato dal vivo: restituisce founder/CEO reali (input keywords+location+maxResults).
+  // Per tornare a harvestapi: APIFY_PROFILE_ACTOR=harvestapi~linkedin-profile-search.
+  apifyProfileActor: process.env.APIFY_PROFILE_ACTOR || 'khadinakbar~linkedin-profile-search-scraper',
   // Scrape di UN profilo da URL (per "Il mio profilo"). Actor diverso dalla ricerca.
   apifyProfileDetailActor:
     process.env.APIFY_PROFILE_DETAIL_ACTOR || 'harvestapi~linkedin-profile-scraper',

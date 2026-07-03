@@ -66,7 +66,7 @@ dell'utente, li organizza in una dashboard mobile, e l'utente invia le richieste
 
 | Pezzo | Ruolo | Free tier | Note |
 |---|---|---|---|
-| **Apify** | scraping profili LinkedIn + offerte di lavoro | $5/mese (~5.000 profili con Actor economico) | NON tocca l'account dell'utente |
+| **Apify** | scraping profili LinkedIn + offerte di lavoro | $5/mese (~5.000 profili con Actor economico) | NON tocca l'account dell'utente. Actor ricerca profili = `khadinakbar~linkedin-profile-search-scraper` (vedi nota "Scelta Actor" sotto) |
 | **Gemini 2.5 Flash Lite** | valuta i profili vs profilo utente + genera messaggi | 1.500 req/giorno, 20-30 req/min | Si usa **batching** per stare sotto i limiti |
 | **Supabase** | database (profili, lavori, categorie, stati, profilo utente) | 500MB + ~50k righe | |
 | **Next.js + Vercel** | dashboard mobile-first | hobby gratis | Niente auth (uso personale) |
@@ -109,9 +109,38 @@ GitHub Actions (cron mattutino)
 | `GEMINI_API_KEY` | sì | — | valutazione + messaggi |
 | `CRON_SECRET` | sì | — | protegge la route cron |
 | `DASHBOARD_PASSWORD` | sì | — | protezione dashboard (middleware) |
-| `APIFY_PROFILE_MODE` | no | `Short` | `Short` (economico) / `Full` (dà i follower) |
-| `APIFY_PROFILE_ACTOR` / `APIFY_PROFILE_DETAIL_ACTOR` / `APIFY_JOB_ACTOR` | no | harvestapi~… | override Actor Apify |
+| `APIFY_PROFILE_MODE` | no | `Short` | Solo per harvestapi: `Short` / `Full` (dà i follower). Ignorato da khadinakbar. |
+| `APIFY_PROFILE_ACTOR` | no | `khadinakbar~linkedin-profile-search-scraper` | Actor ricerca profili. Default no-cookie, pay-per-event, **senza** il cap "10 run/mese" di harvestapi (vedi nota sotto). |
+| `APIFY_PROFILE_DETAIL_ACTOR` / `APIFY_JOB_ACTOR` | no | harvestapi~… | override Actor Apify (scrape singolo profilo / lavori) |
 | `COLLECT_PROFILE_LIMIT` / `COLLECT_JOB_LIMIT` | no | `15` / `15` | profili/lavori per giro |
+
+#### Scelta dell'Actor di ricerca profili (perché khadinakbar, non harvestapi)
+Storia: l'Actor originale `harvestapi~linkedin-profile-search` **limita gli utenti free di
+Apify a 10 run/mese**; dopo il cap risponde `SUCCEEDED` ma con **"free user run limit
+reached" → 0 risultati**. Il cron giornaliero esaurisce le 10 run in ~10 giorni, poi la
+raccolta si spegne silenziosamente (il credito Apify resta intatto → sintomo ingannevole).
+
+Actor testati dal vivo per sostituirlo (ricerca per keyword, no-cookie):
+- ❌ `get-leads~linkedin-scraper` (mode `search`): senza cookie si affida a SERP di motori
+  esterni (Brave/Google/…) che lo **rate-limitano** → 0 profili. Inaffidabile per un cron.
+- ❌ `curious_coder~…`, `bebity~…`: **a noleggio** (rental, trial scaduto) → richiedono
+  abbonamento mensile dell'Actor.
+- ❌ `anchor~linkedin-profile-enrichment`: solo **enrichment** da URL noti (`startUrls`), non
+  cerca per keyword.
+- ✅ **`khadinakbar~linkedin-profile-search-scraper`** (scelto): **pay-per-event, no-cookie,
+  nessun cap "10 run/mese"**. Testato: restituisce founder/CEO reali di Dubai. Input
+  `keywords`+`location`+`maxResults`; output ricco (`fullName/firstName/lastName/headline/
+  profileUrl/publicIdentifier/currentCompany/jobTitle/snippet`). NB: usa Google (`source:
+  serpapi`) → il campo `location` per-profilo spesso è vuoto (la città guida la query) e
+  `currentCompany` può essere impreciso; l'`headline` resta il segnale affidabile. Non dà il
+  n. follower (per `max_followers` serve tornare a harvestapi Full via env).
+
+`searchProfiles()` in [src/lib/apify.ts](src/lib/apify.ts) manda i campi di **più schemi**
+insieme, così cambiare Actor via `APIFY_PROFILE_ACTOR` non richiede toccare il codice; e
+`normalizeProfile()` copre i nomi-campo di tutti gli Actor testati (+ `cleanText()` che
+rimuove i marcatori RTL dai nomi arabi, per non sballare il guess del genere). Regola: **un
+Actor non è "valido" finché non l'hai lanciato dal vivo col token e visto profili veri** —
+lo schema store spesso mente e il free-tier del singolo Actor è indipendente dal credito Apify.
 
 ### Ottimizzazione chiamate Gemini (vincolo: poche chiamate)
 - **Batching obbligatorio:** ~15 profili per chiamata (`BATCH_SIZE`). Lotti più grandi
