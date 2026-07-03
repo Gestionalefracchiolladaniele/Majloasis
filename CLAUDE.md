@@ -180,6 +180,10 @@ lo schema store spesso mente e il free-tier del singolo Actor è indipendente da
   → Gemini lo riassume in un "profilo sintetico" salvato in DB → diventa il metro di valutazione.
   Più le risposte alle 5 domande chiave (sotto).
 - **Card minimale:** foto (tonda, piccola) + nome + ruolo + score + categoria + badge.
+  khadinakbar **non fornisce la foto** (cerca via Google, `enriched:false`) → quando
+  `photo_url` è null si mostra un **avatar con iniziali** e colore stabile derivato dal
+  nome (`ContactCard`/`ContactModal`, look B&W). Se un giorno si scrapa la foto vera
+  (es. actor detail), `photo_url` la usa automaticamente.
 - **Tap sulla card → pop-up** con tutte le info scrapate (esperienze, azienda, città, ecc.) + bottoni:
   `🔗 Apri LinkedIn`, `✍️ Genera messaggio`, sposta in categoria.
 - **Selezione multipla:** checkbox per spostare più contatti insieme.
@@ -191,6 +195,15 @@ lo schema store spesso mente e il free-tier del singolo Actor è indipendente da
   "Scelta dell'Actor"): premere "↻ Aggiorna persone" più volte fa avanzare la rotazione.
 - **Lead prima, score dopo:** "↻ Aggiorna persone" mostra subito i nuovi contatti (senza
   score, in fondo alla lista); il bottone "✨ Completa score (N)" compare da solo e li valuta.
+  - **Score SELETTIVO (controllo chiamate Gemini):** `/api/backfill` accetta `{ ids }` →
+    `runBackfillScores(60, ids)` valuta **solo** i contatti scelti. In dashboard:
+    "✨ Spunta senza score" (nei filtri) seleziona in massa i senza-score; poi
+    "✨ Valuta selezionati (N)" ne valuta solo quel sottoinsieme. Il bottone header valuta
+    tutti i null se non c'è selezione, altrimenti solo i selezionati.
+  - **Perché conta:** Gemini fa **1 chiamata ogni `BATCH_SIZE=15`** contatti (+ `sleep 4s`
+    tra i batch). Valutare **tutti** i null in un colpo (es. 49 → 4 chiamate + 3 sleep) può
+    **sforare i 60s** di Vercel hobby → spinner infinito. Selezionando **≤15** contatti =
+    1 sola chiamata (~5s) → sempre sotto i 60s. Regola d'uso: valuta a lotti di ~15.
 - **Tracker anti-ban:** conteggio settimanale inviti (es. 47/100) + avviso quando ci si avvicina al limite.
 - **Preferenze:** pre-impostate in base al profilo utente, ma modificabili da un pannello nella dashboard.
 - **Genera messaggio = MESSAGGIO (DM post-accettazione)**, non la nota dell'invito. Flusso sicuro:
