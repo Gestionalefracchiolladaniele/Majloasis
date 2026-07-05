@@ -5,8 +5,10 @@
 > parlando direttamente con Claude, non in una tab dell'app.
 >
 > **File collegati:** `profilo-linkedin.md` (configurazione profilo, da fare PRIMA dei post),
-> `sistemalinkedin.md` / `sistemalinkedin2.md` (trascrizioni-fonte da cui è distillata questa
-> strategia: algoritmo 360 Brew, sistema a bucket, comment flywheel, ottimizzazione Dubai).
+> `sistemalinkedin.md` / `sistemalinkedin2.md` / `sistemalinkedin3.md` (trascrizioni-fonte da cui è
+> distillata questa strategia: algoritmo 360 Brew, sistema a bucket, comment flywheel, ottimizzazione
+> Dubai. Il `3` è un playbook "da viralità/846k follower": ne abbiamo preso SOLO i pezzi compatibili
+> col nostro obiettivo-autorità — vedi sotto "Pezzi presi dal playbook viralità").
 
 ---
 
@@ -40,6 +42,42 @@ Tutto ciò che segue nasce da come LinkedIn distribuisce oggi i contenuti. Punti
   nel tempo e inizia a instradare quel tipo di contenuto verso il tuo pubblico.
 - **Dettagli:** dai un nome ai file dei caroselli prima di caricarli; metti **alt text** alle
   immagini (l'algoritmo lo legge).
+
+---
+
+## 🏴‍☠️ Pezzi presi dal playbook "viralità" (`sistemalinkedin3.md`)
+
+Quel file è il sistema di un creator da 846k follower (Matt Gray / Founder OS). **Il suo
+obiettivo è l'opposto del nostro** (massa di follower + viralità + vendita a freddo; noi:
+autorità davanti a pochi founder giusti a Dubai). Quindi **non lo adottiamo in blocco**: di
+seguito SOLO ciò che è compatibile col nostro obiettivo-autorità. Il resto è scartato apposta.
+
+### ✅ Da tenere (oro, anche per l'autorità)
+- **La "parola da possedere".** I creator forti piantano UNA parola nella testa di chi apre
+  il profilo (lui = *systems*; Ali Abdaal = *productivity*; James Clear = *habits*). Domanda
+  per noi: **quale parola deve scattare quando un founder pensa all'utente?** Candidata forte:
+  **"AI-native"** (già nell'identità di profilo). Va piantata in headline + ripetuta nei post.
+  → Coerente con il "content fingerprint" del 360 Brew sopra: posta sempre intorno a quella parola.
+- **Immagine value-dense = la "thumbnail" del post.** Un'immagine che riassume/visualizza il
+  contenuto è "succo per l'algoritmo" e soprattutto **fa salvare** il post (save > like, che è
+  già la nostra metrica). Per noi: schema/architettura B/N Majloasis, non grafica decorativa.
+- **Hook a 3 righe** (struttura, non i suoi temi): riga 1 = curiosità · riga 2 = identità/dato
+  (chiama un sottogruppo: "se costruisci con l'AI…") · riga 3 = promessa di valore immediato.
+- **Parole-leva nei hook:** *I / I've / when / what / how* → spingono al racconto concreto e
+  vissuto (= il nostro "suonare come uno che costruisce"). Anti-AI naturale.
+- **Review mensile + doppia sul top 10%.** Ogni ~30 giorni guarda quali tuoi post hanno
+  attirato commenti **dal tuo ICP** (non i like!) e rifai quei formati. (Già nel nostro spirito.)
+
+### ❌ Da NON adottare (va contro il nostro posizionamento)
+- **Engagement pod / "30 persone nei primi 45 min".** Il nostro README lo dice già morto col
+  360 Brew, e davanti ai founder è il contrario dell'autorità. La nostra leva è il **comment
+  flywheel** (commentare noi sotto gli ICP), non gruppi di mutuo like.
+- **Caccia al repost / alle metriche di vanità.** Noi guardiamo coerenza del muro e save, non
+  reach. Un post solido da 5 like vale lo stesso.
+- **Lead-gen aggressiva** (newsletter + telefono + imbuti, CTA "reposta+seguimi+iscriviti").
+  Brucia l'aura coi founder. Vedi la nostra sezione lead-magnet: **soft e raro**, "senza imbuti".
+- **Ossessione follower / "diventare il miglior creator della piattaforma".** Non è il gioco
+  nostro: a noi bastano ~2-5k follower giusti + un profilo che dice "questo è serio".
 
 ---
 
@@ -206,6 +244,70 @@ assorbi cosa risuona, e rifai qualcosa che solo tu potevi fare.
 | **Immagine: codice / schema** | Più stop-scroll | Quando c'è roba visiva |
 | **Documento PDF (carousel nativo)** | LinkedIn lo spinge molto (+ nomina il file, metti alt text) | Post-pilastro tecnici |
 
+---
+
+## 🎠 Carosello / Documento — quando SÌ e quando NO (check a ogni post)
+
+Le fonti 2025-2026 sono concordi: **carosello e documenti nativi fanno 2-3x il dwell time** di
+testo/immagine → è la leva di formato più forte oggi (dwell + save = le nostre metriche). MA non
+tutto ci va bene: un post secco da 3 righe (es. 007-testo, 011) è forte *proprio perché* corto —
+farne un carosello lo annacqua.
+
+**Regola del formato → a ogni idea Claude dice se è candidata a carosello:**
+- ✅ **Carosello SE c'è progressione:** passi di una pipeline/architettura, un prima/dopo, una lista
+  argomentata, una trilogia di ragionamento. Una slide = una tappa. (Es. 015 prima/dopo, 007 i 5
+  step dell'architettura.)
+- ❌ **Immagine singola SE è un colpo secco:** una verità contrarian in 3 righe, una quote-card, uno
+  screenshot che vale da solo (011 terminale prezzi, 013 striscia dei 4 modelli). Il carosello qui
+  spezza il colpo d'occhio.
+
+**Come si fa bene (non fake):**
+- **Cover = l'hook, nient'altro.** La slide 1 deve fermare lo scroll da sola (la stessa riga-1 del post).
+- **Una slide, una idea.** Se una slide ha due concetti, sono due slide. Poche parole, font grande, B/N Majloasis.
+- **Ultima slide = la riga citabile o la domanda-CTA** (quella che nel testo chiude il post).
+- **Il testo del post NON ripete il carosello:** fa da didascalia (hook + 1-2 righe) e lascia che sia
+  il carosello a portare il contenuto → così la gente swipa fino in fondo (= dwell time).
+- **Sempre:** dai un nome descrittivo al file PDF prima di caricarlo + alt text (l'algoritmo li legge).
+- ⚠️ **Documento PDF si carica solo da desktop** (da mobile no). Va preparato prima.
+
+> Formato consigliato slide: verticale 4:5 telefono, stile B/N Majloasis. Se il carosello *è* il post
+> (015), spacchetta l'infografica già fatta in slide invece di rigenerarla da zero.
+
+---
+
+## 💬 Auto-commento (il TUO commento sotto il tuo post) — sì, ma con un ruolo preciso
+
+Le fonti confermano: **commentare il proprio post per aggiungere valore è raccomandato e non abbassa
+l'aura** — a patto che il commento faccia una cosa vera e mai "bel post". In più alimenta la golden
+hour con un segnale che l'algoritmo *premia* (commento sostanzioso del creator) invece dei like finti
+da pagine-fantasma (che oggi = pattern da engagement pod → shadowban; vedi sezione 360 Brew e i pod
+"morti"). **Da mettere subito, tu stesso, nei primi minuti.**
+
+**Il commento deve fare UNA di queste 3 cose (a ogni post Claude propone quale):**
+1. **Estende, non ripete** — porta il dettaglio tecnico che nel post avrebbe appesantito. È già la
+   tattica del 007: le "boring parts" (embeddings/retry/grounding) le tieni fuori dal testo → vanno
+   nel primo commento. Chi capisce coglie la profondità, chi no non si spaventa.
+2. **È il tuo vissuto** — l'angolo non replicabile che nel post lasci implicito. (Es. sotto il 015:
+   *"been running most of my work like this for months — from my phone."*) Il post teorizza, il
+   commento dice "io lo faccio già", senza vantarsi nel testo.
+3. **Fa la domanda vera** che apre il thread — specifica, invita risposte da 15+ parole (quelle che
+   l'algoritmo premia), non "sì bravo". (Es. sotto l'011: *"what's the one task you'd never hand to
+   the cheap model, even to save 50x?"*)
+
+**La regola anti-aura (una sola):** il commento deve leggersi come **un secondo pensiero di chi ha
+scritto**, non come un tentativo di gonfiare il post. Test: se lo leggessi da un altro, penseresti
+"ah, buon punto in più" o "sta cercando engagement"? Se è il secondo → non pubblicarlo.
+
+**❌ Da NON fare (è il metodo vecchio, 2021, ora penalizzato):**
+- Like al proprio post da pagine aziendali / account collegati (pattern da pod → shadowban).
+- Auto-commentarsi 2 volte con roba vuota ("great point!") → si vede e brucia l'autorità.
+- Engagement bait ("commenta SÌ se sei d'accordo", polling) → attivamente soppresso.
+
+> **Poi:** rispondi a OGNI commento reale, specie nella prima ora (ogni risposta = nuovo evento di
+> engagement + persone vere). Vedi "Comment flywheel".
+
+---
+
 ## 🎁 Lead magnet / asset
 
 L'idea ("commenta una parola, ti mando una risorsa") funziona come algoritmo-hack
@@ -275,6 +377,31 @@ screenshot o risultati con l'AI, un occhio tecnico lo sgama e crolla la credibil
 Ogni volta che serve generare con Nano Banana o Veo, **chiedere a Claude il prompt su misura**
 (soggetto, stile B/N Majloasis, formato, loop). I prompt buoni si salvano qui o accanto al post.
 
+> ⚠️ **Anti-drift (importante):** NON iterare un'immagine usando la sua stessa output come riferimento
+> a catena (= fotocopia di fotocopia → la qualità svanisce, micro-differenze a ogni giro). **Rigenerare
+> sempre dal PROMPT-testo**, fare 3-4 varianti, scegliere la migliore, fermarsi. Se serve un riferimento
+> di stile, usare sempre l'immagine-madre originale, mai l'ultima della catena.
+
+### Template-master quote-card B/N (stile fisso del muro)
+Stile deciso per le quote-card tipografiche (003/004/005): font bold geometrico, **setup in grigio →
+punchline in bianco**, gradiente radiale soft, 3:4, niente firma. Compilare i `[...]` e generare:
+```
+Ultra-premium minimalist typographic poster, vertical 3:4 portrait format, high resolution, crisp and sharp, strict black and white.
+
+BACKGROUND: pure deep black with a soft subtle radial gradient — a faint dark charcoal glow in the upper-center area, fading smoothly to pure black at all edges and corners. Clean, no texture, no noise.
+
+TEXT: large bold geometric sans-serif typeface (Helvetica Bold / Arial Bold style), heavy weight, tight line spacing, LEFT-ALIGNED starting near the left edge with a small margin. The text is BIG and fills most of the frame width, four lines stacked tightly:
+[RIGA 1 — setup]
+[RIGA 2 — setup]
+[RIGA 3 — punchline]
+[RIGA 4 — punchline]
+
+COLOR HIERARCHY: the first two lines in muted medium grey (the setup). The last two lines in pure bright white (the punchline). Same font size for all lines, perfectly spelled, sharp clean edges, high contrast.
+
+Generous black negative space below and to the right of the text. Editorial, confident, like a premium quote card. Render ONLY these exact four lines of text, nothing else — no name, no avatar, no icons, no symbols, no decorations, no watermark.
+```
+Regola: **grigio = premessa, bianco = frase che colpisce.** Prompt già compilati in `posts/004-*` e `posts/005-*`.
+
 ---
 
 ## 🔄 Flusso operativo (con Claude, a ogni chat)
@@ -283,8 +410,12 @@ Ogni volta che serve generare con Nano Banana o Veo, **chiedere a Claude il prom
 2. Claude estrae l'idea + chiede (se serve) **l'esperienza dell'utente in 1 frase**
    (è l'ingrediente che rende il post unico e inimitabile).
 3. Claude scrive il **post pronto** (hook + corpo + chiusura), nella voce giusta per il formato.
-4. Si itera finché non è perfetto → l'utente lo **pubblica a mano**.
-5. Il post va salvato in `posts/NNN-slug.md` e registrato nel log qui sotto.
+4. **Claude dice sempre due cose** (vedi sezioni 🎠 e 💬 sopra):
+   - **Carosello/documento?** → sì se c'è progressione (passi/prima-dopo/lista), no se è colpo secco.
+     Se sì, propone lo split in slide.
+   - **Auto-commento?** → sì, e propone quale dei 3 ruoli (estende / vissuto / domanda) + lo scrive.
+5. Si itera finché non è perfetto → l'utente lo **pubblica a mano** (e mette il primo commento a mano).
+6. Il post va salvato in `posts/NNN-slug.md` (incluso il testo del primo commento) e registrato nel log qui sotto.
 
 ---
 
@@ -322,8 +453,39 @@ Ogni volta che serve generare con Nano Banana o Veo, **chiedere a Claude il prom
 
 | # | Data | Titolo / tema | Formato | Note (performance, cosa imparato) |
 |---|---|---|---|---|
-| 002 | giu 2026 | Presentazione / percorso (PINNED) | Personal | **Primo post pubblicato.** Da fissare in alto. `posts/002-*` |
-| 001 | _da pubblicare (2°)_ | Il free tier come miglior architetto | Authority | bozza pronta in `posts/001-*`. Pubblicare DOPO il 002 |
+| 015 | lug 2026 | "Prompting is already over" — smetti di promptare, scrivi il /goal (prima/dopo: prompt→read→react vs sistema che gira e si auto-verifica) | 🟢 Growth (hot take) | **PUBBLICATO.** Da `transcriptloop.md` + `transcriptgoal.md` (Boris/Claude Code: agentic loop, "stop being the machine"). Namejacking soft (non cita Boris). Angolo vissuto: l'utente i loop li fa già (codifica dal telefono). Focus: **il prompt è finito, adesso c'è il /goal** (dinamiche prima/dopo). ⚠️ Comando corretto = `/goal` (NON `/loop`: in Claude Code /loop è un cron a intervalli, /goal è l'agentic loop — vedi transcriptgoal.md). CTA-domanda "how long until none of us are writing what to do anymore?". Img = **infografica B/N prima/dopo** (PROMPT loop-chiuso grigio vs **GOAL** figura che esce, accento ambra). Lega al filo judgment 003→009→011→014. `posts/015-*`. |
+| 014 | lug 2026 | "The cheaper model won" — Sonnet 5 vs Opus 4.8 ($1.77 vs $34, metà tempo) | 🟢 Growth (newsjacking) / 🔵 | **PUBBLICATO.** Newsjacking Sonnet 5 come PROVA reale del filo judgment (chiude 003→009→011 con un fatto). Numeri VERIFICATI sui benchmark ufficiali Anthropic (SWE-bench 63.2/69.2, GDPval 1618/1615 → Sonnet BATTE Opus su knowledge work). Img tabella benchmark DARK. Riga citabile: "the frontier moving down is bigger news than moving up". `posts/014-*`. |
+| 013 | — | "In one word, the one skill that still matters when AI can do everything?" (4 modelli) | 🟢 Growth | **IN ATTESA SCREENSHOT.** Domanda nostra → 4 modelli reali. Versioni A/B pronte. CTA "what's yours?" (interattivo, non growth-hack). `posts/013-*`. |
+| 012 | — | Contrarian tecno-ottimista: "They've got it backwards" (la distopia è non usare il tempo che l'AI ridà) | 🟢 Growth / ⚪ | **BOZZA pronta.** Img robot/smartphone RICREATA originale (no copyright). Testo minimale 3 righe. Immagine muta. `posts/012-*`. |
+| 011 | — | "The smartest model is rarely the right one" (modello giusto per il task, 50x cheaper) | 🔵 Authority | **BOZZA pronta.** Da Img terminale prezzi (screen reale) + post Reddit open-weight (preso solo il dato). Chiude trilogia judgment 003→009→011. `posts/011-*`. |
+| 010 | — | "Building the network first" — networking Dubai PRIMA di trasferirsi | ⚪ Personal | **BOZZA pronta.** Meme "Distracted Boyfriend" (template safe). Aura + autoironia. Primo Personal dopo 002. `posts/010-*`. |
+| 009 | giu 2026 | "Work = Decisions + Actions" — l'AI digitalizza il giudizio | 🔵 Authority | **PUBBLICATO.** Infografica 3 colonne (CEO/Knowledge/Physical) rifatta nostra (vibrant). Sequel di 003. Interattivo "where do you draw it?". `posts/009-*`. |
+| 008 | — | Meme Kung Fu Panda 2015→2026 "Code / AI" (il codice era il lavoro, l'AI cresceva nel silenzio) | 🟢 Growth | **BOZZA.** ⚠️ Verificare COPYRIGHT (meme scena di film — come Anakin potrebbe non essere editabile). Scritte safe CODE/AI. `posts/008-*`. |
+| 007 | giu 2026 | "Contract Review Agent" — il modello è una scatola, il sistema intorno è il prodotto | 🔵 Authority | **PUBBLICATO.** Infografica architettura sul NOSTRO stack (rifatta da riferimento Azure → Next.js/Python/Claude/Google Doc AI/Supabase). Versione "uno che ne sa". `posts/007-*`. |
+| 006 | — | "Reddit = fonte #1 citata dall'AI" → bot Redictra (lead-magnet) | 🟡 Conversion | **BOZZA.** ⚠️ Verificare BOT end-to-end prima di postare. Hook corretto (no "40% di tutto"). Infografica utente. `posts/006-*`. |
+| 005 | — | Newsjacking "100% CIO investe nell'AI ma il dibattito la dice flop" (dati RBC) | 🟢 Growth | **BOZZA.** ⚠️ Verificare link RBC/BI. Link fonte nel 1° commento. `posts/005-*`. |
+| 004 | giu 2026 | Hot take "licenziamenti AI = competere sul costo → augmenta, non sostituire" | 🟢 Growth | **PUBBLICATO.** Quote-card B/N. `posts/004-*`. |
+| 003 | giu 2026 | Hot take "AI-native ≠ uso ChatGPT" → "judgment is the job" | 🟢 Growth | **PUBBLICATO.** Frase-manifesto B/N. `posts/003-*`. |
+| 002 | giu 2026 | Presentazione / percorso (PINNED) | ⚪ Personal | **PUBBLICATO.** Fissato in alto. `posts/002-*` |
+| 001 | ❌ cancellato | (era: free tier come architetto) | Authority | Scartato: angolo didattico/già visto. |
 
-> **Ordine di pubblicazione:** prima il **002** (presentazione, ti fa conoscere + pinned),
-> poi il **001** (tecnico, dimostra). Regola: prima ti presenti, poi dimostri.
+> **Mix aggiornato (lug 2026):** PUBBLICATI = 002 ⚪ · 003 🟢 · 004 🟢 · 007 🔵 · 009 🔵 · 014 🟢 · 015 🟢.
+> BOZZE pronte = 005 🟢 · 006 🟡 · 010 ⚪ · 011 🔵 · 012 🟢 · 013 🟢 (in attesa screen). Authority ben coperto
+> (007/009/011) e c'è il primo Personal nuovo (010) + Conversion (006). Filo "judgment" = 003→009→011→014→015.
+> **⚠️ Da curare (importante ADESSO):** ultimi due pubblicati sono entrambi 🟢 Growth (014, 015) →
+> **il prossimo NON deve essere Growth.** Tocca a un 🔵 Authority (011) o ⚪ Personal (010) per bilanciare
+> il muro. Mix target sul mese: 40% Growth / 30% Authority / 20% Conversion / 10% Personal.
+
+### ⚠️ Note operative emerse in questa sessione (importanti)
+- **Copyright meme:** i meme con **scene/volti di film** (Anakin/Padmé, Kung Fu Panda) spesso NON sono
+  editabili (tool li bloccano) → **Anakin scartato**, **008 Kung Fu Panda da verificare**. Preferire
+  **template generici** (Distracted Boyfriend = foto stock → ok, usato nel 010) o immagini RICREATE da
+  zero (come la vignetta del 012).
+- **Infografiche (007/009):** generate in stile "vibrant" (indigo→violet, blu/teal/coral). Regole per
+  l'aura tecnica: niente pricing/piani; stack reale (Next.js/Python·FastAPI/Claude/Google Doc AI/
+  Supabase+pgvector/GitHub/Vercel); coprire le lacune (retrieval, grounding, retry, human-review, async
+  queue) così un tecnico dice "ha capito"; togliere ridondanze (un tool una volta sola).
+- **Voce dei post tecnici (decisa sul 007):** niente "io" pesante, niente storia di fallimento, **afferma
+  senza spiegare**, apertura-verità (effetto "ha ragione" sulla 1ª riga), inglese, frasi corte, no em dash.
+- **Verifiche pendenti prima di pubblicare:** 006 → testare bot Redictra end-to-end; 005 → verificare
+  link RBC/Business Insider; 013 → fare gli screenshot reali dei 4 modelli.

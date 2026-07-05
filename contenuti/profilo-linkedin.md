@@ -37,7 +37,7 @@
 
 ## ✅ HEADLINE (definitiva)
 ```
-AI-Native Full-Stack Engineer | I build & ship AI products solo — idea to launch | Moving to Dubai 🇦🇪
+AI-Native Full-Stack Engineer | I build & ship AI products — idea to launch | Moving to Dubai 🇦🇪
 ```
 *Keyword cercabili: AI, Full-Stack, Engineer, AI products, Dubai. La 🇦🇪 è la bandiera UAE
 (Dubai non ha emoji propria). "Moving to Dubai" = segnale forte di direzione, non turista.*
