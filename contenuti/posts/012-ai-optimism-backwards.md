@@ -3,8 +3,8 @@ numero: 012
 tema: "Contrarian tecno-ottimista: tutti vedono la distopia (macchine pensano, noi scrolliamo). È al contrario — la distopia è non fare nulla del tempo che l'AI ci ridà."
 formato: 🟢 Growth (hot take contrarian) / sfumatura ⚪ Personal
 voce: ottimista MA lucido/asciutto (no motivazionale-coach), apertura-verità, inglese
-stato: bozza (pronta)
-data_pubblicazione:
+stato: PUBBLICATO
+data_pubblicazione: 2026-07-05
 immagine: illustrazione editoriale ORIGINALE (robot sereni che leggono/disegnano su panchina + folla di umani assorti dallo smartphone) — versione SINISTRA, muta (senza caption)
 fonte_riferimento: Img 2 (vignetta "Asier" doomer robot/smartphone) → NON riusata (copyright); ricreata originale e RIBALTATA dal testo
 ---
@@ -16,7 +16,7 @@ fonte_riferimento: Img 2 (vignetta "Asier" doomer robot/smartphone) → NON rius
 > Ottimismo LUCIDO, non motivazionale (argomento storico, non slogan; niente 🚀). **Safe:** opinione
 > pura, zero progetti/scraping.
 
-## Testo (pronto da pubblicare) — Opzione 2 (minimale + autonomo)
+## Testo (PUBBLICATO — versione finale con CTA-domanda)
 
 ```
 Everyone's afraid of the same thing: the machines think, we scroll.
@@ -24,7 +24,13 @@ Everyone's afraid of the same thing: the machines think, we scroll.
 They've got it backwards.
 
 The dystopia was never AI doing our tasks. It's us doing nothing with the time it gives back.
+
+If AI handed you back two hours a day, what would you actually do with them?
 ```
+
+> **Scelta finale (Modo 1):** CTA-domanda esplicita nel post, **niente auto-commento** (la domanda è
+> già nel testo → un secondo commento-domanda sarebbe ripetitivo/acchiappa-engagement). Immagine pulita
+> e muta. La domanda nasce dalla tesi ("the time it gives back" → "two hours a day") → naturale, non incollata.
 
 ## Note di costruzione
 - **Minimale ma autonomo:** 3 righe. La 1 aggancia la paura comune, la 2 la ribalta ("They've got it

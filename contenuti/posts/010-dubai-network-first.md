@@ -3,8 +3,8 @@ numero: 010
 tema: "Networking a Dubai PRIMA di trasferirsi — il percorso, raccontato con aura e autoironia"
 formato: ⚪ Personal / 🟢 Growth (meme 'fidanzato distratto')
 voce: aura + autoironico, da builder, inglese
-stato: bozza (pronta — manca solo editare le scritte sul meme)
-data_pubblicazione:
+stato: PROGRAMMATO — sabato 11 lug 2026, ~18:00 IT (slot sera). Manca solo editare le scritte sul meme.
+data_pubblicazione: 2026-07-11
 immagine: meme "Distracted Boyfriend" con scritte editate da noi (vedi sotto)
 fonte_riferimento: meme format "Distracted Boyfriend" (Img 7 dei riferimenti) → tema Dubai nostro
 ---
@@ -29,17 +29,24 @@ Everyone moves to a new city, then starts networking. I'm doing it in reverse.
 
 I'm building a network of founders in Dubai before I land. From my desk, months ahead.
 
-Most people will arrive and send CVs. I'll arrive in a city that already knows my name.
+Most people arrive and don't know what to do. I'll arrive in a city that already knows my name.
 
-I'm an engineer. Arriving cold is a bug. So I fixed it before it happened.
+I'm an Ai Engineer. Arriving cold is a bug. So I fixed it before it happened.
+```
 
-Different game entirely.
+## Auto-commento (primo commento — estende: il PERCHÉ "prima")
+> Stile firma-muro: `📌 Etichetta:` + frase. Ruolo = estende (porta la ragione che nel post era implicita).
+> **Safe:** resta sul tempismo/relazioni, NON dice "automatizzo/scrapo" (sarebbe contro il principio del progetto).
+```
+📌 Why: relationships need time to warm up. That's the one thing you can't buy once you've already landed.
 ```
 
 ## Note di costruzione
 - **Aura + autoironia:** "doing it in reverse" / "a city that already knows my name" = sicurezza, visione.
   "Arriving cold is a bug. So I fixed it before it happened." = on-brand (engineer, tratti la vita come
-  un sistema), un filo divertente, ma soprattutto aura. Chiusura secca e citabile ("Different game entirely.").
+  un sistema), un filo divertente, ma soprattutto aura. Chiude su questa riga secca e citabile
+  (rimossa la vecchia "Different game entirely" — generica; il "bug/fixed" è una chiusura più forte).
+  Riga 3 su richiesta utente: "Most people arrive and don't know what to do" (era "arrive and send CVs").
 - **Safe:** non rivela il sistema/come attiva i contatti → zero scraping/LinkedIn. Solo "ho un metodo".
 - **Vero:** ancorato ai fatti reali (Dubai, ottobre 2026, costruire prima). "Moving to Dubai" già sul profilo.
 - **Voce:** frasi corte, niente em dash, inglese. Personal ma non motivazionale-coach.

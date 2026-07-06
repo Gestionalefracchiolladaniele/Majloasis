@@ -3,8 +3,8 @@ numero: 011
 tema: "Il modello più intelligente è raramente quello giusto. Un modello 50x più economico non è peggiore: è uno strumento diverso. Scegliere = giudizio."
 formato: 🔵 Authority (ragionamento da builder)
 voce: impersonale/esperto (niente 'io'), apertura-verità, inglese
-stato: bozza (pronta)
-data_pubblicazione:
+stato: PROGRAMMATO — giovedì 9 lug 2026, ~11:00 IT (slot mattina)
+data_pubblicazione: 2026-07-09
 immagine: screenshot REALE del terminale "Select default model" coi prezzi $/Mtok (Img 6) — autentico, zero copyright
 fonte_riferimento: Img 6 (terminale model picker) + post r/ArtificialInteligence "The unbearable cheapness of open weight" (preso SOLO il dato 50x, NON il complottismo ban/scarsità)
 ---
@@ -29,6 +29,16 @@ The expensive one earns its price where being wrong is costly and hard to undo. 
 Picking one model for everything usually means the work hasn't hit real scale yet.
 
 Match the model to the job. The bill and the quality both improve.
+```
+
+## Auto-commenti (primo commento — stile firma-muro `📌 Etichetta:`)
+> Due commenti: il 1° ESTENDE (il criterio pratico che nel post appesantiva), il 2° apre il THREAD.
+> Ordine: prima Rule (il valore), poi Question (l'invito).
+```
+📌 Rule: expensive model when being wrong is costly and hard to undo. Cheap model for everything high-volume where one mistake doesn't matter.
+```
+```
+📌 Question: what's the one task you'd never trust to the cheap model, even to save 50x?
 ```
 
 ## Note di costruzione

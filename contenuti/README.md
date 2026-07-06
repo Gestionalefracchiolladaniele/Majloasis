@@ -453,10 +453,11 @@ Regola: **grigio = premessa, bianco = frase che colpisce.** Prompt già compilat
 
 | # | Data | Titolo / tema | Formato | Note (performance, cosa imparato) |
 |---|---|---|---|---|
+| 016 | 7 lug 2026 (PROGRAMMATO) | "I've written books both ways" — l'AI moltiplica i livelli alti che già hai, non li crea ("zero, multiplied, is still zero") | 🔵 Authority / 🟢 | **PROGRAMMATO mar 7, ~15:00 IT.** Newsjacking articolo Guardian (4 lug, AI & fiction) ma FUNZIONE = Authority (l'utente ha scritto libri davvero → competenza reale in 2 campi). Prende la frase del linguista Stockwell ("AI great at lower levels, worse the higher you go") → filo judgment 003→009→011. Img ORIGINALE B/N (due scrittori, stessa AI: sx ordinato / dx sommerso) — **niente screenshot/logo Guardian** (uso marchio + "fingere sostanza"). Link Guardian VERO nel 1° commento (reach piena). Chiusura "removed every excuse for not having it". `posts/016-*`. |
 | 015 | lug 2026 | "Prompting is already over" — smetti di promptare, scrivi il /goal (prima/dopo: prompt→read→react vs sistema che gira e si auto-verifica) | 🟢 Growth (hot take) | **PUBBLICATO.** Da `transcriptloop.md` + `transcriptgoal.md` (Boris/Claude Code: agentic loop, "stop being the machine"). Namejacking soft (non cita Boris). Angolo vissuto: l'utente i loop li fa già (codifica dal telefono). Focus: **il prompt è finito, adesso c'è il /goal** (dinamiche prima/dopo). ⚠️ Comando corretto = `/goal` (NON `/loop`: in Claude Code /loop è un cron a intervalli, /goal è l'agentic loop — vedi transcriptgoal.md). CTA-domanda "how long until none of us are writing what to do anymore?". Img = **infografica B/N prima/dopo** (PROMPT loop-chiuso grigio vs **GOAL** figura che esce, accento ambra). Lega al filo judgment 003→009→011→014. `posts/015-*`. |
 | 014 | lug 2026 | "The cheaper model won" — Sonnet 5 vs Opus 4.8 ($1.77 vs $34, metà tempo) | 🟢 Growth (newsjacking) / 🔵 | **PUBBLICATO.** Newsjacking Sonnet 5 come PROVA reale del filo judgment (chiude 003→009→011 con un fatto). Numeri VERIFICATI sui benchmark ufficiali Anthropic (SWE-bench 63.2/69.2, GDPval 1618/1615 → Sonnet BATTE Opus su knowledge work). Img tabella benchmark DARK. Riga citabile: "the frontier moving down is bigger news than moving up". `posts/014-*`. |
 | 013 | — | "In one word, the one skill that still matters when AI can do everything?" (4 modelli) | 🟢 Growth | **IN ATTESA SCREENSHOT.** Domanda nostra → 4 modelli reali. Versioni A/B pronte. CTA "what's yours?" (interattivo, non growth-hack). `posts/013-*`. |
-| 012 | — | Contrarian tecno-ottimista: "They've got it backwards" (la distopia è non usare il tempo che l'AI ridà) | 🟢 Growth / ⚪ | **BOZZA pronta.** Img robot/smartphone RICREATA originale (no copyright). Testo minimale 3 righe. Immagine muta. `posts/012-*`. |
+| 012 | 5 lug 2026 | Contrarian tecno-ottimista: "They've got it backwards" (la distopia è non usare il tempo che l'AI ridà) | 🟢 Growth / ⚪ | **PUBBLICATO.** Img robot/smartphone RICREATA originale (no copyright), pulita e muta. Testo 3 righe + **CTA-domanda finale** ("if AI handed you back two hours a day, what would you do?"), scelta Modo 1 → niente auto-commento (domanda già nel post). ⚠️ 3° Growth di fila (014→015→012). `posts/012-*`. |
 | 011 | — | "The smartest model is rarely the right one" (modello giusto per il task, 50x cheaper) | 🔵 Authority | **BOZZA pronta.** Da Img terminale prezzi (screen reale) + post Reddit open-weight (preso solo il dato). Chiude trilogia judgment 003→009→011. `posts/011-*`. |
 | 010 | — | "Building the network first" — networking Dubai PRIMA di trasferirsi | ⚪ Personal | **BOZZA pronta.** Meme "Distracted Boyfriend" (template safe). Aura + autoironia. Primo Personal dopo 002. `posts/010-*`. |
 | 009 | giu 2026 | "Work = Decisions + Actions" — l'AI digitalizza il giudizio | 🔵 Authority | **PUBBLICATO.** Infografica 3 colonne (CEO/Knowledge/Physical) rifatta nostra (vibrant). Sequel di 003. Interattivo "where do you draw it?". `posts/009-*`. |
@@ -469,12 +470,24 @@ Regola: **grigio = premessa, bianco = frase che colpisce.** Prompt già compilat
 | 002 | giu 2026 | Presentazione / percorso (PINNED) | ⚪ Personal | **PUBBLICATO.** Fissato in alto. `posts/002-*` |
 | 001 | ❌ cancellato | (era: free tier come architetto) | Authority | Scartato: angolo didattico/già visto. |
 
-> **Mix aggiornato (lug 2026):** PUBBLICATI = 002 ⚪ · 003 🟢 · 004 🟢 · 007 🔵 · 009 🔵 · 014 🟢 · 015 🟢.
-> BOZZE pronte = 005 🟢 · 006 🟡 · 010 ⚪ · 011 🔵 · 012 🟢 · 013 🟢 (in attesa screen). Authority ben coperto
-> (007/009/011) e c'è il primo Personal nuovo (010) + Conversion (006). Filo "judgment" = 003→009→011→014→015.
-> **⚠️ Da curare (importante ADESSO):** ultimi due pubblicati sono entrambi 🟢 Growth (014, 015) →
-> **il prossimo NON deve essere Growth.** Tocca a un 🔵 Authority (011) o ⚪ Personal (010) per bilanciare
-> il muro. Mix target sul mese: 40% Growth / 30% Authority / 20% Conversion / 10% Personal.
+> **Mix aggiornato (5 lug 2026):** PUBBLICATI = 002 ⚪ · 003 🟢 · 004 🟢 · 007 🔵 · 009 🔵 · 014 🟢 · 015 🟢 · 012 🟢.
+> BOZZE pronte = 005 🟢 · 006 🟡 · 010 ⚪ · 011 🔵 · 013 🟢 (in attesa screen). Filo "judgment" = 003→009→011→014→015→016.
+>
+> ### 📅 Piano settimana 7–11 lug 2026 (PROGRAMMATO) + esperimento fasce orarie
+> Ritmo 1 post ogni 1–2 giorni. **Esperimento:** mattina/pomeriggio/sera per intuire le fasce (⚠️ campione
+> piccolo + 3 bucket diversi → dà una *sensazione*, non una prova; l'orario conta meno del contenuto col 360 Brew).
+> Orari scelti per la sovrapposizione Dubai (GST +4) + Europa (CEST +2) + USA-Est (ET −4). Sweet spot = 15:00 IT.
+>
+> | Giorno | Ora IT | Chi prende | Post | Bucket | Fascia |
+> |---|---|---|---|---|---|
+> | **Mar 7** | ~15:00 | Dubai fine-giornata + EU + **USA-Est mattina** ⭐ | **016** Guardian/books | 🔵 Authority / 🟢 | ☀️ Pomeriggio |
+> | **Gio 9** | ~11:00 | Dubai + EU (no USA) | **011** right model | 🔵 Authority | 🌅 (metà mattina) |
+> | **Sab 11** | ~18:00 | EU sera + USA-Est pomeriggio | **010** Dubai network | ⚪ Personal | 🌙 Sera |
+>
+> 016 (Authority) **spezza i 3 Growth di fila** (014/015/012) → muro riequilibrato. Poi Authority → Personal.
+> ⚠️ Sabato è weekend a Dubai (founder in relax) → se 010 va piano sabato, potrebbe essere il *giorno*, non l'*ora*.
+> **In coda (settimana dopo, appena sbloccati i prerequisiti):** 006 🟡 (bot Redictra testato end-to-end),
+> 013 🟢 (4 screenshot modelli), 005 🟢 (quote-card + link BI). Mix target mese: 40% Growth / 30% Authority / 20% Conversion / 10% Personal.
 
 ### ⚠️ Note operative emerse in questa sessione (importanti)
 - **Copyright meme:** i meme con **scene/volti di film** (Anakin/Padmé, Kung Fu Panda) spesso NON sono
